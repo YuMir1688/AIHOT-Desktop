@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AssemblyName>AIHOT.Cards</AssemblyName>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="AIHOT.Desktop"><HintPath>../lib/AIHOT.Desktop.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="QRCoder"><HintPath>../lib/QRCoder.dll</HintPath><Private>false</Private></Reference>
+  </ItemGroup>
+</Project>

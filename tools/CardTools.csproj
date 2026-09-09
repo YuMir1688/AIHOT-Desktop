@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><TargetFramework>net10.0-windows</TargetFramework><UseWPF>true</UseWPF><OutputType>Exe</OutputType><UseAppHost>false</UseAppHost><ImplicitUsings>enable</ImplicitUsings><Nullable>enable</Nullable></PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../src/AIHOT.Cards.csproj" />
+    <Reference Include="AIHOT.Desktop"><HintPath>../lib/AIHOT.Desktop.dll</HintPath></Reference>
+    <Reference Include="QRCoder"><HintPath>../lib/QRCoder.dll</HintPath></Reference>
+    <Reference Include="Mono.Cecil"><HintPath>../lib/Mono.Cecil.dll</HintPath></Reference>
+  </ItemGroup>
+</Project>
