@@ -11,6 +11,15 @@ static class Program
     [STAThread]
     static void Main(string[] args)
     {
+        if (args[0] == "telegram-test")
+        {
+            var state = new TelegramPush.State { Seen = new HashSet<string> { "old" } };
+            var input = new[] { new NewsItem { Id = "old" }, new NewsItem { Id = "new" }, new NewsItem { Id = "new" } };
+            Require(TelegramPush.Discover(state, input) == 1 && state.Pending.Count == 1, "Baseline and duplicate IDs excluded");
+            var restored = JsonSerializer.Deserialize<TelegramPush.State>(JsonSerializer.Serialize(state))!;
+            Require(TelegramPush.Discover(restored, input) == 0 && restored.Pending.Count == 1, "Restart preserves pending and deduplication");
+            Console.WriteLine("PASS Telegram baseline, deduplication, persistent pending queue"); return;
+        }
         if (args[0] == "reader-test")
         {
             typeof(ReportTests).GetMethod("Initialize", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic)!.Invoke(null, null);
@@ -158,6 +167,9 @@ static class Program
         var tickIl = tick.Body.GetILProcessor();
         tickIl.Emit(OpCodes.Ldarg_0); tickIl.Emit(OpCodes.Ldarg_1);
         tickIl.Emit(OpCodes.Call, module.ImportReference(newModule.Types.Single(t => t.FullName == "YuMir.Cards.TickerMotion").Methods.Single(m => m.Name == "Tick"))); tickIl.Emit(OpCodes.Ret);
+        var headlineMethod = main.Methods.Single(m => m.Name == "SetHeadline");
+        if (!headlineMethod.Body.Instructions.Any(i => i.Operand is MethodReference m && m.FullName.Contains("TelegramPush::Start")))
+            headlineMethod.Body.GetILProcessor().InsertBefore(headlineMethod.Body.Instructions[0], Instruction.Create(OpCodes.Call, module.ImportReference(newModule.Types.Single(t => t.FullName == "YuMir.Cards.TelegramPush").Methods.Single(m => m.Name == "Start"))));
         module.Write(output);
         Console.WriteLine("Patched share rendering and report sharing hook; existing report calculation preserved.");
     }

@@ -30,3 +30,9 @@ Windows 上安装 .NET 10 SDK，运行：
     dotnet tools/bin/Release/net10.0-windows/CardTools.dll patch app/AIHOT.Desktop.dll src/bin/Release/net10.0-windows/AIHOT.Cards.dll patched.dll
 
 不要将 test-host 生成的测试程序集用于正式程序。
+
+## Telegram 自动推送
+
+程序运行时跟随现有精选刷新，约每 5 分钟获取资讯，发现新条目后发到配置频道。首次运行仅建立基线，不补发历史。已发送 ID 与待发送队列保存在本机；明确失败会重试，结果不确定的中断请求不盲目重发。
+
+本地配置位于 %LOCALAPPDATA%/YuMir/AIHOT.Desktop/telegram.local.json，字段为 bot_username、bot_token、channel_id；可添加 enabled:false 暂停。Token 不包含在源码、程序包中。状态写入同目录 telegram-status.txt。另一台电脑须单独配置，建议只在一台电脑启用以免跨电脑重复。
