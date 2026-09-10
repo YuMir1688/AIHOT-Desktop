@@ -14,6 +14,8 @@ public static class ReaderSidebar
         object Get(string name) => reader.GetType().GetField(name, flags)!.GetValue(reader)!;
         var scroll = (ScrollViewer)Get("listScroll");
         if (scroll.Parent is not DockPanel sidebar || sidebar.Parent is not Grid columns) return;
+        var count = (TextBlock)Get("count");
+        if (count.Text.StartsWith("全部资讯")) count.Text = "今日优选TOP100";
         var results = (StackPanel)Get("results");
         var selected = Get("selected") as string;
         var cards = (Dictionary<string, Button>)Get("cards");
