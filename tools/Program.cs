@@ -20,6 +20,22 @@ static class Program
             Require(TelegramPush.Discover(restored, input) == 0 && restored.Pending.Count == 1, "Restart preserves pending and deduplication");
             Console.WriteLine("PASS Telegram baseline, deduplication, persistent pending queue"); return;
         }
+        if (args[0] == "scrollbar-test")
+        {
+            var panel = new System.Windows.Controls.StackPanel { Orientation = System.Windows.Controls.Orientation.Horizontal, Background = System.Windows.Media.Brushes.Black };
+            foreach (double viewport in new[] { 1d, 10d, 100d, 1000d })
+            {
+                var bar = new System.Windows.Controls.Primitives.ScrollBar { Width = 20, Height = 300, Minimum = 0, Maximum = 1000, ViewportSize = viewport, Margin = new System.Windows.Thickness(20) };
+                ScrollbarAppearance.Apply(bar); panel.Children.Add(bar);
+                bar.Measure(new System.Windows.Size(20,300)); bar.Arrange(new System.Windows.Rect(0,0,20,300)); bar.UpdateLayout();
+                var track = (System.Windows.Controls.Primitives.Track)bar.Template.FindName("PART_Track",bar);
+                Require(track.Thumb.Template.LoadContent() is ScrollbarAppearance.Capsule, "All scrollbar sizes use capsule renderer");
+                Require(track.Thumb.ActualHeight <= bar.ActualHeight && double.IsNaN(track.Thumb.Height), "Thumb fits track without fixed height clipping");
+            }
+            panel.Measure(new System.Windows.Size(240,340)); panel.Arrange(new System.Windows.Rect(0,0,240,340)); panel.UpdateLayout();
+            var bitmap = new RenderTargetBitmap(480,680,192,192,System.Windows.Media.PixelFormats.Pbgra32); bitmap.Render(panel); Save(bitmap,args[1]);
+            Console.WriteLine("PASS four scrollbar lengths, unified templates and track bounds"); return;
+        }
         if (args[0] == "reader-test")
         {
             typeof(ReportTests).GetMethod("Initialize", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic)!.Invoke(null, null);

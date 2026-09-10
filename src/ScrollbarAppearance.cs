@@ -26,12 +26,27 @@ public static class ScrollbarAppearance
     }
     public static void Apply(ScrollBar bar)
     {
-        bar.ApplyTemplate();
-        var track = bar.Template?.FindName("PART_Track", bar) as Track ?? FindTrack(bar);
+        if (!Equals(bar.Tag, "FullCapsuleScrollbar"))
+        {
+            bar.Tag = "FullCapsuleScrollbar";
+            bar.Template = (ControlTemplate)System.Windows.Markup.XamlReader.Parse("""
+<ControlTemplate xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" TargetType="ScrollBar">
+<Grid Background="Transparent" SnapsToDevicePixels="False">
+ <Track x:Name="PART_Track" Orientation="{TemplateBinding Orientation}" IsDirectionReversed="True" Minimum="{TemplateBinding Minimum}" Maximum="{TemplateBinding Maximum}" Value="{TemplateBinding Value}" ViewportSize="{TemplateBinding ViewportSize}">
+  <Track.DecreaseRepeatButton><RepeatButton Command="ScrollBar.PageUpCommand" Focusable="False"><RepeatButton.Template><ControlTemplate TargetType="RepeatButton"><Border Background="Transparent"/></ControlTemplate></RepeatButton.Template></RepeatButton></Track.DecreaseRepeatButton>
+  <Track.Thumb><Thumb MinHeight="0" MinWidth="0" Height="Auto" Width="Auto" Margin="0" Padding="0" VerticalAlignment="Stretch" HorizontalAlignment="Stretch"/></Track.Thumb>
+  <Track.IncreaseRepeatButton><RepeatButton Command="ScrollBar.PageDownCommand" Focusable="False"><RepeatButton.Template><ControlTemplate TargetType="RepeatButton"><Border Background="Transparent"/></ControlTemplate></RepeatButton.Template></RepeatButton></Track.IncreaseRepeatButton>
+ </Track>
+</Grid>
+<ControlTemplate.Triggers><Trigger Property="Orientation" Value="Horizontal"><Setter TargetName="PART_Track" Property="IsDirectionReversed" Value="False"/></Trigger></ControlTemplate.Triggers>
+</ControlTemplate>
+""");
+        }
+        bar.ApplyTemplate();        var track = bar.Template?.FindName("PART_Track", bar) as Track ?? FindTrack(bar);
         if (track?.Thumb is not Thumb thumb) return;
         if (Equals(thumb.Tag, "UnifiedCapsuleThumb")) return;
         thumb.Tag = "UnifiedCapsuleThumb";
-        thumb.MinHeight = 0; thumb.MinWidth = 0;
+        thumb.Style = null; thumb.MinHeight = 0; thumb.MinWidth = 0; thumb.Height = double.NaN; thumb.Width = double.NaN; thumb.Margin = new Thickness(0);
         var surface = new FrameworkElementFactory(typeof(Capsule));
         surface.SetValue(Capsule.HorizontalProperty, bar.Orientation == System.Windows.Controls.Orientation.Horizontal);
         thumb.Template = new ControlTemplate(typeof(Thumb)) { VisualTree = surface };
