@@ -15,6 +15,7 @@ public static class ReaderSidebar
     }
     private static void RoundThumb(ScrollBar bar)
     {
+        bar.Width = 10;
         bar.ApplyTemplate();
         if (bar.Template.FindName("PART_Track", bar) is not Track track || track.Thumb is not Thumb thumb || Equals(thumb.Tag, "RoundedThumb")) return;
         thumb.Tag = "RoundedThumb";
@@ -25,7 +26,10 @@ public static class ReaderSidebar
         border.SetValue(FrameworkElement.HorizontalAlignmentProperty, HorizontalAlignment.Center);
         border.SetValue(Border.BackgroundProperty, ReportSharing.Brush("#607784"));
         border.SetValue(FrameworkElement.MarginProperty, new Thickness(0, 1, 0, 1));
-        var template = new ControlTemplate(typeof(Thumb)) { VisualTree = border };
+        var hitArea = new FrameworkElementFactory(typeof(Border));
+        hitArea.SetValue(Border.BackgroundProperty, Brushes.Transparent);
+        hitArea.AppendChild(border);
+        var template = new ControlTemplate(typeof(Thumb)) { VisualTree = hitArea };
         thumb.Template = template;
         thumb.Opacity = .75;
         thumb.MouseEnter += (_, _) => thumb.Opacity = 1;
@@ -38,6 +42,12 @@ public static class ReaderSidebar
         object Get(string name) => reader.GetType().GetField(name, flags)!.GetValue(reader)!;
         var scroll = (ScrollViewer)Get("listScroll");
         if (scroll.Parent is not DockPanel sidebar || sidebar.Parent is not Grid columns) return;
+        var position = (TextBlock)Get("positionLabel");
+        position.Width = 76; position.TextAlignment = TextAlignment.Center;
+        position.Margin = new Thickness(8,0,8,0);
+        foreach (var name in new[] { "previous", "next" }) {
+            var navigation = (Button)Get(name); navigation.Width = 84; navigation.MinWidth = 84; navigation.MaxWidth = 84;
+        }
         var count = (TextBlock)Get("count");
         if (count.Text.StartsWith("全部资讯")) count.Text = "今日优选TOP100";
         var results = (StackPanel)Get("results");
@@ -52,7 +62,7 @@ public static class ReaderSidebar
             columns.ColumnDefinitions[0].MinWidth = 360;
             columns.ColumnDefinitions[0].MaxWidth = 540;
             columns.ColumnDefinitions[1].MinWidth = 430;
-            var splitter = new GridSplitter { Width = 6, HorizontalAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Stretch, Background = Brushes.Transparent, ResizeDirection = GridResizeDirection.Columns, ResizeBehavior = GridResizeBehavior.CurrentAndNext, ToolTip = "拖动调整资讯列表宽度", Margin = new Thickness(0,0,3,24) };
+            var splitter = new GridSplitter { Width = 6, HorizontalAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Stretch, Background = Brushes.Transparent, ResizeDirection = GridResizeDirection.Columns, ResizeBehavior = GridResizeBehavior.CurrentAndNext, ToolTip = "拖动调整资讯列表宽度", Margin = new Thickness(0,0,0,24) };
             columns.Children.Add(splitter);
             var search = (TextBox)Get("search"); search.Height = 42; search.Background = ReportSharing.Brush("#182431"); search.Foreground = ReportSharing.Brush("#DCE7EF");
             if (sidebar.Children[0] is StackPanel header)
