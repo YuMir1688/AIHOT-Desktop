@@ -216,6 +216,19 @@ static class Program
             if ((double)instruction.Operand == 1140d) instruction.Operand = 1200d;
             else if ((double)instruction.Operand == 800d) instruction.Operand = 750d;
         }
+        var reportPanel = module.Types.Single(t => t.FullName == "AiHot.ReportPanel");
+        foreach (var method in reportPanel.Methods.Where(m => m.HasBody))
+        foreach (var instruction in method.Body.Instructions.ToArray())
+        {
+            if (instruction.OpCode != OpCodes.Ldstr || instruction.Operand is not string note || !note.StartsWith("仅汇总本机已获取内容")) continue;
+            var concat = instruction.Next;
+            if (concat.Operand is not MethodReference call || call.Name != "Concat") throw new InvalidOperationException("Unexpected report note construction");
+            if (concat.Next.OpCode == OpCodes.Pop) continue;
+            var noteIl = method.Body.GetILProcessor();
+            var discard = Instruction.Create(OpCodes.Pop);
+            noteIl.InsertAfter(concat, discard);
+            noteIl.InsertAfter(discard, Instruction.Create(OpCodes.Ldstr, "仅汇总本机已收录资讯，按北京时间统计。"));
+        }
         module.Write(output);
         Console.WriteLine("Patched share rendering and report sharing hook; existing report calculation preserved.");
     }
