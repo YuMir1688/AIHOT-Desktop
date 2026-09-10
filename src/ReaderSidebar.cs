@@ -38,6 +38,18 @@ public static class ReaderSidebar
         var cards = (Dictionary<string, Button>)Get("cards");
         if (!Equals(sidebar.Tag, "AlignedReaderSidebar"))
         {
+            if (columns.Parent is Grid readerBody)
+            foreach (var row in readerBody.Children.OfType<Grid>())
+            foreach (var heading in row.Children.OfType<StackPanel>())
+            foreach (var title in heading.Children.OfType<TextBlock>().Where(t => t.Text == "你的 AI 信息视野"))
+            {
+                title.FontFamily = new FontFamily("Microsoft YaHei");
+                title.FontSize = 18;
+                title.FontWeight = FontWeights.Medium;
+                title.LineHeight = 28;
+                title.TextWrapping = TextWrapping.NoWrap;
+                title.VerticalAlignment = VerticalAlignment.Center;
+            }
             sidebar.Tag = "AlignedReaderSidebar";
             sidebar.Margin = new Thickness(24, 0, 16, 24);
             sidebar.Resources.MergedDictionaries.Add(PickerStyles.Create());
