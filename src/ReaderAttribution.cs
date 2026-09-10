@@ -19,6 +19,15 @@ public static class ReaderAttribution
             host.Children.Insert(host.Children.IndexOf(scroll), footer);
         }
         footer.Children.Clear();
-        foreach (var label in labels) { detail.Children.Remove(label); footer.Children.Add(label); }
+        foreach (var label in labels)
+        {
+            detail.Children.Remove(label);
+            label.FontSize = 10;
+            label.FontWeight = FontWeights.Normal;
+            label.Foreground = ReportSharing.Brush("#8FA5B8");
+            label.LineHeight = 16;
+            label.Margin = new Thickness(0, footer.Children.Count == 0 ? 0 : 6, 0, 0);
+            footer.Children.Add(label);
+        }
     }
 }
