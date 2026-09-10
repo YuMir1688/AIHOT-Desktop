@@ -12,11 +12,23 @@ public static class ScrollbarAppearance
         installed = true;
         EventManager.RegisterClassHandler(typeof(ScrollBar), FrameworkElement.LoadedEvent,
             new RoutedEventHandler((sender, _) => Apply((ScrollBar)sender)));
+        EventManager.RegisterClassHandler(typeof(Thumb), FrameworkElement.LoadedEvent, new RoutedEventHandler((sender, _) => {
+            DependencyObject? parent = (Thumb)sender;
+            while (parent != null && parent is not ScrollBar) parent = VisualTreeHelper.GetParent(parent);
+            if (parent is ScrollBar owner) Apply(owner);
+        }));
+    }
+    private static Track? FindTrack(DependencyObject root)
+    {
+        if (root is Track track) return track;
+        for (int i = 0; i < VisualTreeHelper.GetChildrenCount(root); i++) { var found = FindTrack(VisualTreeHelper.GetChild(root,i)); if (found != null) return found; }
+        return null;
     }
     public static void Apply(ScrollBar bar)
     {
         bar.ApplyTemplate();
-        if (bar.Template?.FindName("PART_Track", bar) is not Track track || track.Thumb is not Thumb thumb) return;
+        var track = bar.Template?.FindName("PART_Track", bar) as Track ?? FindTrack(bar);
+        if (track?.Thumb is not Thumb thumb) return;
         if (Equals(thumb.Tag, "UnifiedCapsuleThumb")) return;
         thumb.Tag = "UnifiedCapsuleThumb";
         thumb.MinHeight = 0; thumb.MinWidth = 0;

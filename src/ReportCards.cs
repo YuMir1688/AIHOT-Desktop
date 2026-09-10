@@ -184,10 +184,15 @@ public static class ReportCards
         if (categories.Length == 0) { dc.DrawText(Text("本期暂无已存档资讯", 20, ink), new Point(52, y)); y += 42; }
         foreach (var category in categories)
         {
-            dc.DrawText(Text(category.Key, 14, ink, 110), new Point(52, y));
-            dc.DrawRectangle(line.Brush, null, new Rect(165, y + 7, 430, 7));
-            dc.DrawRectangle(accent, null, new Rect(165, y + 7, 430d * category.Count() / Math.Max(1, doc.Snapshot.Items.Count), 7));
-            Right(dc, category.Count().ToString(), 14, ink, 668, y); y += 32;
+            var categoryText = Text(category.Key, 14, ink, 110);
+                var bounds = categoryText.BuildGeometry(new Point(52, y)).Bounds;
+                double centerY = bounds.Top + bounds.Height / 2;
+                dc.DrawText(categoryText, new Point(52, y));
+            dc.DrawRectangle(line.Brush, null, new Rect(165, centerY - 3.5, 430, 7));
+            dc.DrawRectangle(accent, null, new Rect(165, centerY - 3.5, 430d * category.Count() / Math.Max(1, doc.Snapshot.Items.Count), 7));
+            var number = Text(category.Count().ToString(), 14, ink, 110);
+                var numberBounds = number.BuildGeometry(new Point(0,0)).Bounds;
+                dc.DrawText(number, new Point(668 - number.Width, centerY - numberBounds.Top - numberBounds.Height / 2)); y += 32;
         }
         if (y > 816) throw new InvalidOperationException("封面导读较长，请精简后重新生成。");
         if (doc.Selected.Count > 0 && y < 717)
@@ -276,10 +281,15 @@ public static class ReportCards
             double y = categoryY + 35;
             foreach (var category in categories)
             {
-                dc.DrawText(Text(category.Key, 14, ink, 110), new Point(52, y));
-                dc.DrawRectangle(line.Brush, null, new Rect(165, y + 7, 430, 7));
-                dc.DrawRectangle(accent, null, new Rect(165, y + 7, 430d * category.Count() / Math.Max(1, doc.Snapshot.Items.Count), 7));
-                Right(dc, category.Count().ToString(), 14, ink, 668, y); y += 32;
+                var categoryText = Text(category.Key, 14, ink, 110);
+                var bounds = categoryText.BuildGeometry(new Point(52, y)).Bounds;
+                double centerY = bounds.Top + bounds.Height / 2;
+                dc.DrawText(categoryText, new Point(52, y));
+                dc.DrawRectangle(line.Brush, null, new Rect(165, centerY - 3.5, 430, 7));
+                dc.DrawRectangle(accent, null, new Rect(165, centerY - 3.5, 430d * category.Count() / Math.Max(1, doc.Snapshot.Items.Count), 7));
+                var number = Text(category.Count().ToString(), 14, ink, 110);
+                var numberBounds = number.BuildGeometry(new Point(0,0)).Bounds;
+                dc.DrawText(number, new Point(668 - number.Width, centerY - numberBounds.Top - numberBounds.Height / 2)); y += 32;
             }
             if (categories.Length == 0) dc.DrawText(Text("本期暂无已存档资讯", 20, ink), new Point(52, y));
             if (doc.Pages.Count == 1) LongCoverage(dc, doc, muted, height - 40);
