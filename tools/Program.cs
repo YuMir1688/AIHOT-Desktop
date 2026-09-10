@@ -206,6 +206,9 @@ static class Program
                 if (size.OpCode != OpCodes.Ldc_R8) throw new InvalidOperationException("Unexpected share hint font instruction");
                 size.Operand = 12d;
             }
+        var shell = module.Types.Single(t => t.FullName == "AiHot.Ui").Methods.Single(m => m.Name == "Shell");
+        foreach (var instruction in shell.Body.Instructions)
+            if (instruction.OpCode == OpCodes.Ldc_R8 && (double)instruction.Operand == 58d) instruction.Operand = 48d;
         module.Write(output);
         Console.WriteLine("Patched share rendering and report sharing hook; existing report calculation preserved.");
     }
