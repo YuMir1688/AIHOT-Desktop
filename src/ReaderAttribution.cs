@@ -6,6 +6,8 @@ public static class ReaderAttribution
     public static void Fix(StackPanel detail, ScrollViewer scroll)
     {
         if (scroll.Parent is not DockPanel host) return;
+        detail.MaxWidth = 900; detail.HorizontalAlignment = HorizontalAlignment.Left;
+        if (host.Tag is not string tag || tag != "YuMir.ReaderLayout") { host.Resources.MergedDictionaries.Add(PickerStyles.Create()); host.Tag = "YuMir.ReaderLayout"; }
         var labels = detail.Children.OfType<TextBlock>().Where(t => t.Text == "资讯整理 · AIHOT" || t.Text == "桌面体验策划｜YuMir").ToArray();
         if (labels.Length == 0) return;
         var footer = host.Children.OfType<StackPanel>().FirstOrDefault(p => Equals(p.Tag, "YuMir.FixedAttribution"));

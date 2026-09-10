@@ -107,10 +107,10 @@ public sealed class ReportShareWindow : Window
             styleButtons.Add(button); styles.Children.Add(button);
         }
         PaintStyles();
-        Title = "分享报告 · " + snapshot.Name; Width = 1180; Height = 910; MinWidth = 920; MinHeight = 660;
-        var root = new Grid { Margin = new Thickness(22) };
-        root.ColumnDefinitions.Add(new ColumnDefinition()); root.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(405) });
-        var canvas = new DockPanel { Margin = new Thickness(0, 0, 20, 0), LastChildFill = true };
+        Title = "分享报告 · " + snapshot.Name; Width = 1180; Height = 820; MinWidth = 920; MinHeight = 660;
+        var root = new Grid { Margin = new Thickness(24) }; root.Resources.MergedDictionaries.Add(PickerStyles.Create());
+        root.ColumnDefinitions.Add(new ColumnDefinition()); root.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(365) });
+        var canvas = new DockPanel { Margin = new Thickness(0), LastChildFill = true };
         navigation.Margin = new Thickness(0, 12, 0, 0);
         navigation.Children.Add(previous); navigation.Children.Add(next);
         DockPanel.SetDock(navigation, Dock.Bottom); canvas.Children.Add(navigation);
@@ -240,7 +240,7 @@ public sealed class ReportShareWindow : Window
         try
         {
             document = new ReportDocument(snapshot, entries.Where(e => e.Selected).Select(e => e.Item), lead.Text, selectedStyle);
-            page = 0; ShowPage();
+            page = Math.Min(page, document.Pages.Count - 1); ShowPage();
             if (document != null) status.Text = isLong ? $"共 {document.Selected.Count} 条 · 向下滚动查看完整长图" : $"封面 1 张 + 资讯 {document.Pages.Count - 1} 张 · 1080 × 1440";
         }
         catch (Exception ex) { document = null; pageLabel.Text = "生成未完成 · 当前为上次预览"; status.Text = "生成失败：" + ex.Message; }
@@ -255,7 +255,9 @@ public sealed class ReportShareWindow : Window
             {
                 // Real export strips are rendered on demand by the virtualized scrolling preview.
                 _ = ReportCards.RenderLongSection(document, 0);
+                var scrollHost = FindScroll(longPreview); double offset = scrollHost?.VerticalOffset ?? 0;
                 longPreview.ItemsSource = Enumerable.Range(0, document.Pages.Count).Select(i => new LongPart(document, i)).ToArray();
+                longPreview.UpdateLayout(); scrollHost?.ScrollToVerticalOffset(offset);
                 pageLabel.Text = $"长图预览 · {document.Selected.Count} 条资讯 · 向下滚动";
             }
             else
@@ -266,6 +268,12 @@ public sealed class ReportShareWindow : Window
         }
         catch (Exception ex) { document = null; pageLabel.Text = "生成未完成 · 当前为上次预览"; status.Text = "预览失败：" + ex.Message; }
         Buttons();
+    }
+    private static ScrollViewer? FindScroll(DependencyObject root)
+    {
+        if (root is ScrollViewer viewer) return viewer;
+        for (int i = 0; i < VisualTreeHelper.GetChildrenCount(root); i++) { var found = FindScroll(VisualTreeHelper.GetChild(root, i)); if (found != null) return found; }
+        return null;
     }
     private void Buttons()
     {

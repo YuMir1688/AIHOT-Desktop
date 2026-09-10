@@ -116,6 +116,7 @@ static class ReportTests
                 var picker = new ReportPicker(originalChoices);
                 Capture(picker, Path.Combine(output, "picker.png"));
                 Check(picker.VisibleChoices().Count() == actual.Items.Count, "Picker defaults all entries");
+                var savedRow = Find<Button>(picker).First(b => b.Content is DockPanel);
                 var query = Find<TextBox>(picker).Single(); query.Text = actual.Items[0].Title;
                 Check(picker.VisibleChoices().Any() && picker.VisibleChoices().All(c => c.Item.Title.Contains(query.Text) || (c.Item.Summary ?? "").Contains(query.Text)), "Picker search");
                 var matched = picker.VisibleChoices().ToArray();
@@ -123,6 +124,7 @@ static class ReportTests
                 Check(matched.All(c => !c.Selected) && picker.Choices.Except(matched).All(c => c.Selected), "Bulk cancel only affects results");
                 Check(originalChoices.All(c => c.Selected), "Draft edits leave original selection unchanged");
                 query.Clear();
+                Check(Find<Button>(picker).Contains(savedRow), "Filtering reuses original row controls");
                 var first = picker.Choices[0]; var third = picker.Choices[2]; picker.Reorder(first, third);
                 Check(picker.Choices.IndexOf(first) == 2, "Drag reorder preserves explicit order");
                 Find<Button>(picker).Single(b => b.Content is string t && t.StartsWith("已选资讯 (")).RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
