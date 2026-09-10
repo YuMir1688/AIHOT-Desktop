@@ -7,6 +7,30 @@ using AiHot;
 namespace YuMir.Cards;
 public static class ReaderSidebar
 {
+    private static ScrollBar? FindBar(DependencyObject root)
+    {
+        if (root is ScrollBar bar && bar.Orientation == Orientation.Vertical) return bar;
+        for (int i = 0; i < VisualTreeHelper.GetChildrenCount(root); i++) { var found = FindBar(VisualTreeHelper.GetChild(root, i)); if (found != null) return found; }
+        return null;
+    }
+    private static void RoundThumb(ScrollBar bar)
+    {
+        bar.ApplyTemplate();
+        if (bar.Template.FindName("PART_Track", bar) is not Track track || track.Thumb is not Thumb thumb || Equals(thumb.Tag, "RoundedThumb")) return;
+        thumb.Tag = "RoundedThumb";
+        thumb.MinHeight = 0; thumb.MinWidth = 0;
+        var border = new FrameworkElementFactory(typeof(Border));
+        border.SetValue(Border.CornerRadiusProperty, new CornerRadius(1.5));
+        border.SetValue(FrameworkElement.WidthProperty, 3.0);
+        border.SetValue(FrameworkElement.HorizontalAlignmentProperty, HorizontalAlignment.Center);
+        border.SetValue(Border.BackgroundProperty, ReportSharing.Brush("#607784"));
+        border.SetValue(FrameworkElement.MarginProperty, new Thickness(0, 1, 0, 1));
+        var template = new ControlTemplate(typeof(Thumb)) { VisualTree = border };
+        thumb.Template = template;
+        thumb.Opacity = .75;
+        thumb.MouseEnter += (_, _) => thumb.Opacity = 1;
+        thumb.MouseLeave += (_, _) => thumb.Opacity = .75;
+    }
     public static void Apply(object? reader)
     {
         if (reader == null) return;
@@ -33,18 +57,28 @@ public static class ReaderSidebar
             var search = (TextBox)Get("search"); search.Height = 42; search.Background = ReportSharing.Brush("#182431"); search.Foreground = ReportSharing.Brush("#DCE7EF");
             if (sidebar.Children[0] is StackPanel header)
             {
-                if (header.Children[0] is TextBlock label) { label.Text = "搜索资讯  ·  Ctrl+F"; label.Margin = new Thickness(0,0,0,2); }
+                if (header.Children[0] is TextBlock label) label.Visibility = Visibility.Collapsed;
+                if (search.Parent is Grid searchGrid) {
+                    searchGrid.Margin = new Thickness(0,0,0,10);
+                    foreach (var hint in searchGrid.Children.OfType<TextBlock>()) hint.Text = "搜索标题、来源或关键词…  Ctrl+F";
+                }
                 var wrap = header.Children.OfType<WrapPanel>().FirstOrDefault();
                 if (wrap != null)
                 {
                     int index = header.Children.IndexOf(wrap);
-                    var categories = new UniformGrid { Columns = 6, Margin = new Thickness(0,0,0,12) };
-                    foreach (var button in wrap.Children.OfType<Button>().ToArray()) { wrap.Children.Remove(button); button.Margin = new Thickness(0,0,4,0); button.Padding = new Thickness(0,6,0,6); button.MinHeight = 32; categories.Children.Add(button); }
+                    var categories = new UniformGrid { Columns = 6, Margin = new Thickness(-2,0,-2,12) };
+                    foreach (var button in wrap.Children.OfType<Button>().ToArray()) { wrap.Children.Remove(button); button.Margin = new Thickness(2,0,2,0); button.Padding = new Thickness(0,6,0,6); button.MinHeight = 32; categories.Children.Add(button); }
                     header.Children.Remove(wrap); header.Children.Insert(index, categories);
                 }
             }
             scroll.Margin = new Thickness(0,10,0,0);
             scroll.Padding = new Thickness(0); scroll.BorderThickness = new Thickness(0);
+            scroll.LayoutUpdated += (_, _) => {
+                var bar = FindBar(scroll);
+                if (bar != null) RoundThumb(bar);
+                double gutter = bar?.Visibility == Visibility.Visible ? bar.ActualWidth : 0;
+                if (Math.Abs(scroll.Margin.Right + gutter) > .1) scroll.Margin = new Thickness(0,10,-gutter,0);
+            };
         }
         foreach (var pair in cards)
         {

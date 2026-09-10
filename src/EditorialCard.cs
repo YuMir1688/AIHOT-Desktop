@@ -104,9 +104,13 @@ public static class EditorialCard
             if (summary.Length > 0)
             {
                 double labelY = bodyY - 34;
-                dc.DrawRectangle(accent, null, new Rect(left, labelY + 8, 23, 2));
+
                 bool excerpt = !string.IsNullOrEmpty(item.Summary) && item.Summary.Trim().Length > summary.Length && item.Summary.Trim().StartsWith(summary, StringComparison.Ordinal);
-                dc.DrawText(T(excerpt ? "摘要节选 / 完整内容见原文" : "内容导读", 13, muted, width - 40), new Point(left + 34, labelY));
+                var label = T(excerpt ? "摘要节选 / 完整内容见原文" : "内容导读", 13, muted, width - 40);
+                var labelOrigin = new Point(left + 34, labelY);
+                var glyphBounds = label.BuildGeometry(labelOrigin).Bounds;
+                dc.DrawRectangle(accent, null, new Rect(left, glyphBounds.Top + glyphBounds.Height / 2 - 1, 23, 2));
+                dc.DrawText(label, labelOrigin);
                 dc.DrawText(body, new Point(left, bodyY));
             }
             // The QR bitmap includes its quiet zone and uses exactly 3 physical pixels per module.
