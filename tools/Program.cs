@@ -209,6 +209,13 @@ static class Program
         var shell = module.Types.Single(t => t.FullName == "AiHot.Ui").Methods.Single(m => m.Name == "Shell");
         foreach (var instruction in shell.Body.Instructions)
             if (instruction.OpCode == OpCodes.Ldc_R8 && (double)instruction.Operand == 58d) instruction.Operand = 48d;
+        foreach (var constructor in reader.Methods.Where(m => m.IsConstructor && m.HasBody))
+        foreach (var instruction in constructor.Body.Instructions)
+        {
+            if (instruction.OpCode != OpCodes.Ldc_R8) continue;
+            if ((double)instruction.Operand == 1140d) instruction.Operand = 1200d;
+            else if ((double)instruction.Operand == 800d) instruction.Operand = 750d;
+        }
         module.Write(output);
         Console.WriteLine("Patched share rendering and report sharing hook; existing report calculation preserved.");
     }

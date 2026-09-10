@@ -41,7 +41,7 @@ public static class ReaderSidebar
             sidebar.Tag = "AlignedReaderSidebar";
             sidebar.Margin = new Thickness(24, 0, 16, 24);
             sidebar.Resources.MergedDictionaries.Add(PickerStyles.Create());
-            columns.ColumnDefinitions[0].Width = new GridLength(400);
+            columns.ColumnDefinitions[0].Width = new GridLength(380);
             columns.ColumnDefinitions[0].MinWidth = 360;
             columns.ColumnDefinitions[0].MaxWidth = 540;
             columns.ColumnDefinitions[1].MinWidth = 430;
