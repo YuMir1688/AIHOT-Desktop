@@ -1,0 +1,46 @@
+using System.Windows.Controls;
+using System.Windows;
+using System.Windows.Controls.Primitives;
+using System.Windows.Media;
+namespace YuMir.Cards;
+public static class ScrollbarAppearance
+{
+    private static bool installed;
+    public static void Install()
+    {
+        if (installed) return;
+        installed = true;
+        EventManager.RegisterClassHandler(typeof(ScrollBar), FrameworkElement.LoadedEvent,
+            new RoutedEventHandler((sender, _) => Apply((ScrollBar)sender)));
+    }
+    public static void Apply(ScrollBar bar)
+    {
+        bar.ApplyTemplate();
+        if (bar.Template?.FindName("PART_Track", bar) is not Track track || track.Thumb is not Thumb thumb) return;
+        if (Equals(thumb.Tag, "UnifiedCapsuleThumb")) return;
+        thumb.Tag = "UnifiedCapsuleThumb";
+        thumb.MinHeight = 0; thumb.MinWidth = 0;
+        var surface = new FrameworkElementFactory(typeof(Capsule));
+        surface.SetValue(Capsule.HorizontalProperty, bar.Orientation == System.Windows.Controls.Orientation.Horizontal);
+        thumb.Template = new ControlTemplate(typeof(Thumb)) { VisualTree = surface };
+        thumb.Opacity = .75;
+        thumb.MouseEnter += (_, _) => thumb.Opacity = 1;
+        thumb.MouseLeave += (_, _) => thumb.Opacity = .75;
+    }
+    public sealed class Capsule : FrameworkElement
+    {
+        public static readonly DependencyProperty HorizontalProperty = DependencyProperty.Register("Horizontal", typeof(bool), typeof(Capsule), new FrameworkPropertyMetadata(false, FrameworkPropertyMetadataOptions.AffectsRender));
+        public bool Horizontal { get => (bool)GetValue(HorizontalProperty); set => SetValue(HorizontalProperty, value); }
+        protected override void OnRender(DrawingContext dc)
+        {
+            base.OnRender(dc);
+            dc.DrawRectangle(Brushes.Transparent, null, new Rect(RenderSize));
+            double thickness = Math.Min(3, Horizontal ? ActualHeight : ActualWidth);
+            double length = Math.Max(0, (Horizontal ? ActualWidth : ActualHeight) - 2);
+            if (thickness <= 0 || length <= 0) return;
+            var rect = Horizontal ? new Rect(1, (ActualHeight-thickness)/2, length, thickness) : new Rect((ActualWidth-thickness)/2, 1, thickness, length);
+            double radius = Math.Min(thickness, length)/2;
+            dc.DrawRoundedRectangle(new SolidColorBrush(Color.FromRgb(96,119,132)), null, rect, radius, radius);
+        }
+    }
+}

@@ -13,6 +13,7 @@ public static class TelegramPush
     public sealed class State { public HashSet<string> Seen { get; set; } = []; public List<NewsItem> Pending { get; set; } = []; public string? InFlight { get; set; } }
     public static void Start()
     {
+        ScrollbarAppearance.Install();
         if (Interlocked.Exchange(ref started, 1) != 0) return;
         _ = Task.Run(async () => { while (true) { try { await Poll(); } catch { Status("自动推送暂未完成，将稍后重试。请检查网络或本地配置。"); } await Task.Delay(TimeSpan.FromSeconds(20)); } });
     }

@@ -16,24 +16,7 @@ public static class ReaderSidebar
     private static void RoundThumb(ScrollBar bar)
     {
         bar.Width = 10;
-        bar.ApplyTemplate();
-        if (bar.Template.FindName("PART_Track", bar) is not Track track || track.Thumb is not Thumb thumb || Equals(thumb.Tag, "RoundedThumb")) return;
-        thumb.Tag = "RoundedThumb";
-        thumb.MinHeight = 0; thumb.MinWidth = 0;
-        var border = new FrameworkElementFactory(typeof(Border));
-        border.SetValue(Border.CornerRadiusProperty, new CornerRadius(1.5));
-        border.SetValue(FrameworkElement.WidthProperty, 3.0);
-        border.SetValue(FrameworkElement.HorizontalAlignmentProperty, HorizontalAlignment.Center);
-        border.SetValue(Border.BackgroundProperty, ReportSharing.Brush("#607784"));
-        border.SetValue(FrameworkElement.MarginProperty, new Thickness(0, 1, 0, 1));
-        var hitArea = new FrameworkElementFactory(typeof(Border));
-        hitArea.SetValue(Border.BackgroundProperty, Brushes.Transparent);
-        hitArea.AppendChild(border);
-        var template = new ControlTemplate(typeof(Thumb)) { VisualTree = hitArea };
-        thumb.Template = template;
-        thumb.Opacity = .75;
-        thumb.MouseEnter += (_, _) => thumb.Opacity = 1;
-        thumb.MouseLeave += (_, _) => thumb.Opacity = .75;
+        ScrollbarAppearance.Apply(bar);
     }
     public static void Apply(object? reader)
     {
@@ -49,7 +32,7 @@ public static class ReaderSidebar
             var navigation = (Button)Get(name); navigation.Width = 84; navigation.MinWidth = 84; navigation.MaxWidth = 84;
         }
         var count = (TextBlock)Get("count");
-        if (count.Text.StartsWith("全部资讯")) count.Text = "今日优选TOP100";
+        if (count.Text.StartsWith("全部资讯")) count.Text = "今日精选 TOP100";
         var results = (StackPanel)Get("results");
         var selected = Get("selected") as string;
         var cards = (Dictionary<string, Button>)Get("cards");

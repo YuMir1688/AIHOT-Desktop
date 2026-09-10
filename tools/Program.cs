@@ -181,6 +181,15 @@ static class Program
             filterIl.InsertBefore(endFilter, loadReader);
             filterIl.InsertBefore(endFilter, Instruction.Create(OpCodes.Call, module.ImportReference(newModule.Types.Single(t => t.FullName == "YuMir.Cards.ReaderSidebar").Methods.Single(m => m.Name == "Apply"))));
         }
+        var shareWindow = module.Types.Single(t => t.FullName == "AiHot.ShareWindow");
+        foreach (var method in shareWindow.Methods.Where(m => m.HasBody))
+        foreach (var instruction in method.Body.Instructions)
+            if (instruction.OpCode == OpCodes.Ldstr && Equals(instruction.Operand, "编辑内容，生成一张值得分享的资讯卡。"))
+            {
+                var size = instruction.Next;
+                if (size.OpCode != OpCodes.Ldc_R8) throw new InvalidOperationException("Unexpected share hint font instruction");
+                size.Operand = 12d;
+            }
         module.Write(output);
         Console.WriteLine("Patched share rendering and report sharing hook; existing report calculation preserved.");
     }

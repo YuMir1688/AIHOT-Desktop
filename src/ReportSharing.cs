@@ -49,6 +49,7 @@ public static class ReportSharing
     }
     internal static void Shell(Window window, UIElement body)
     {
+        ScrollbarAppearance.Install();
         typeof(NewsItem).Assembly.GetType("AiHot.Ui")!.GetMethod("Shell", BindingFlags.Static | BindingFlags.NonPublic)!
             .Invoke(null, [window, "分享报告", body]);
     }
