@@ -49,6 +49,10 @@ public static class ReaderSidebar
                 title.LineHeight = 28;
                 title.TextWrapping = TextWrapping.NoWrap;
                 title.VerticalAlignment = VerticalAlignment.Center;
+                // Optical correction: these dense glyphs appear larger at the same nominal size.
+                title.Inlines.Clear();
+                title.Inlines.Add(new System.Windows.Documents.Run("你的 AI 信息"));
+                title.Inlines.Add(new System.Windows.Documents.Run("视野") { FontSize = 17, BaselineAlignment = BaselineAlignment.Baseline });
             }
             sidebar.Tag = "AlignedReaderSidebar";
             sidebar.Margin = new Thickness(24, 0, 16, 24);
