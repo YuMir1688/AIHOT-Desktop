@@ -35,7 +35,8 @@ static class Program
             var footer = host.Children.OfType<System.Windows.Controls.StackPanel>().Single(p => Equals(p.Tag, "YuMir.FixedAttribution"));
             Require(footer.Children.Count == 2 && System.Windows.Controls.DockPanel.GetDock(footer) == System.Windows.Controls.Dock.Bottom, "Fixed footer exists once");
             Require(!detail.Children.OfType<System.Windows.Controls.TextBlock>().Any(t => t.Text.Contains("资讯整理")), "Attribution removed from scrolling content");
-            window.Close(); Console.WriteLine("PASS fixed footer, repeated selection, scroll separation"); return;
+            typeof(ReportTests).GetMethod("Capture", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic)!.Invoke(null, new object[] { window, args[1] });
+            window.Close(); Console.WriteLine("PASS fixed footer, repeated selection, scroll separation and sidebar layout"); return;
         }
         if (args[0] == "patch") { Patch(args[1], args[2], args[3]); return; }
         if (args[0] == "verify") { Verify(args[1]); return; }
@@ -170,6 +171,16 @@ static class Program
         var headlineMethod = main.Methods.Single(m => m.Name == "SetHeadline");
         if (!headlineMethod.Body.Instructions.Any(i => i.Operand is MethodReference m && m.FullName.Contains("TelegramPush::Start")))
             headlineMethod.Body.GetILProcessor().InsertBefore(headlineMethod.Body.Instructions[0], Instruction.Create(OpCodes.Call, module.ImportReference(newModule.Types.Single(t => t.FullName == "YuMir.Cards.TelegramPush").Methods.Single(m => m.Name == "Start"))));
+        var filterMethod = reader.Methods.Single(m => m.Name == "Filter");
+        if (!filterMethod.Body.Instructions.Any(i => i.Operand is MethodReference m && m.FullName.Contains("ReaderSidebar::Apply")))
+        {
+            var filterIl = filterMethod.Body.GetILProcessor();
+            var endFilter = filterMethod.Body.Instructions.Last(i => i.OpCode == OpCodes.Ret);
+            var loadReader = Instruction.Create(OpCodes.Ldarg_0);
+            foreach(var i in filterMethod.Body.Instructions) if(i.Operand == endFilter) i.Operand = loadReader;
+            filterIl.InsertBefore(endFilter, loadReader);
+            filterIl.InsertBefore(endFilter, Instruction.Create(OpCodes.Call, module.ImportReference(newModule.Types.Single(t => t.FullName == "YuMir.Cards.ReaderSidebar").Methods.Single(m => m.Name == "Apply"))));
+        }
         module.Write(output);
         Console.WriteLine("Patched share rendering and report sharing hook; existing report calculation preserved.");
     }

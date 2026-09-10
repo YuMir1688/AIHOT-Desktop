@@ -5,8 +5,9 @@ public static class ReaderAttribution
 {
     public static void Fix(StackPanel detail, ScrollViewer scroll)
     {
+        ReaderSidebar.Apply(Window.GetWindow(detail));
         if (scroll.Parent is not DockPanel host) return;
-        detail.MaxWidth = 900; detail.HorizontalAlignment = HorizontalAlignment.Left;
+        detail.MaxWidth = 900; detail.HorizontalAlignment = HorizontalAlignment.Stretch;
         if (host.Tag is not string tag || tag != "YuMir.ReaderLayout") { host.Resources.MergedDictionaries.Add(PickerStyles.Create()); host.Tag = "YuMir.ReaderLayout"; }
         var labels = detail.Children.OfType<TextBlock>().Where(t => t.Text == "资讯整理 · AIHOT" || t.Text == "桌面体验策划｜YuMir").ToArray();
         if (labels.Length == 0) return;
