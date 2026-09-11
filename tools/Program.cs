@@ -56,6 +56,7 @@ static class Program
         }
         if (args[0] == "patch") { Patch(args[1], args[2], args[3]); return; }
         if (args[0] == "verify") { Verify(args[1]); return; }
+        if (args[0] == "verify-top-label") { VerifyTopLabel(args[1], args[2]); return; }
         if (args[0] == "report-test") { ReportTests.Run(args[1], args[2]); return; }
         if (args[0] == "report-ui") { ReportTests.Show(args[1]); return; }
         if (args[0] == "test-host")
@@ -185,6 +186,8 @@ static class Program
         tickIl.Emit(OpCodes.Ldarg_0); tickIl.Emit(OpCodes.Ldarg_1);
         tickIl.Emit(OpCodes.Call, module.ImportReference(newModule.Types.Single(t => t.FullName == "YuMir.Cards.TickerMotion").Methods.Single(m => m.Name == "Tick"))); tickIl.Emit(OpCodes.Ret);
         var headlineMethod = main.Methods.Single(m => m.Name == "SetHeadline");
+        foreach (var instruction in headlineMethod.Body.Instructions)
+            if (instruction.OpCode == OpCodes.Ldstr && Equals(instruction.Operand, "TOP100")) instruction.Operand = "TOP";
         if (!headlineMethod.Body.Instructions.Any(i => i.Operand is MethodReference m && m.FullName.Contains("TelegramPush::Start")))
             headlineMethod.Body.GetILProcessor().InsertBefore(headlineMethod.Body.Instructions[0], Instruction.Create(OpCodes.Call, module.ImportReference(newModule.Types.Single(t => t.FullName == "YuMir.Cards.TelegramPush").Methods.Single(m => m.Name == "Start"))));
         var filterMethod = reader.Methods.Single(m => m.Name == "Filter");
@@ -240,5 +243,20 @@ static class Program
         var image = (BitmapSource)render.Invoke(null, [news, news.Title, "新版分享卡片已接入。", 0])!;
         Require(image.PixelWidth == 1080 && image.PixelHeight == 1440, "Patched renderer dimensions");
         Console.WriteLine("PASS patched SharePoster dispatch: 1080 × 1440");
+    }
+    static void VerifyTopLabel(string desktopPath, string cardsPath)
+    {
+        using var desktop = ModuleDefinition.ReadModule(desktopPath);
+        using var cards = ModuleDefinition.ReadModule(cardsPath);
+        static IEnumerable<string> Strings(ModuleDefinition module) => All(module.Types)
+            .SelectMany(type => type.Methods.Where(method => method.HasBody))
+            .SelectMany(method => method.Body.Instructions)
+            .Where(instruction => instruction.OpCode == OpCodes.Ldstr)
+            .Select(instruction => instruction.Operand as string)
+            .OfType<string>();
+        var labels = Strings(desktop).Concat(Strings(cards)).ToArray();
+        Require(!labels.Any(value => value.Contains("TOP100", StringComparison.Ordinal)), "Legacy TOP100 label remains");
+        Require(labels.Any(value => value.Contains("今日精选 TOP", StringComparison.Ordinal)), "Compact TOP label missing");
+        Console.WriteLine("PASS 今日精选 TOP label; TOP100 removed");
     }
 }
