@@ -130,7 +130,7 @@ public static class EditorialCard
             var host = T(uri.Host, 12, muted, sourceWidth, false, 1.3, "Arial");
             host.MaxLineCount = 1; host.Trimming = TextTrimming.CharacterEllipsis;
             dc.DrawText(host, new Point(left, footerY + 125));
-            dc.DrawText(T("YUMIR  /  每天一点 AI 新知", 11, muted, 410), new Point(left, 921));
+            dc.DrawText(T("YUMIR / 每天一点AI新知", 11, muted, 410), new Point(left, 921));
             Right(dc, "扫码阅读原文 ↗", 11, muted, 668, 921);
         }
         var image = new RenderTargetBitmap(1080, 1440, 144, 144, PixelFormats.Pbgra32);

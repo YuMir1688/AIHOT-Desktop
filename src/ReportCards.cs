@@ -151,7 +151,7 @@ public static class ReportCards
             if (index == 0) Cover(dc, doc, ink, muted, accent, line);
             else Article(dc, doc, index, ink, muted, accent, line);
             dc.DrawLine(line, new Point(52, 910), new Point(668, 910));
-            dc.DrawText(Text("YUMIR / 本机存档 · 可能不完整 · 北京时间", 11, muted), new Point(52, 924));
+            dc.DrawText(Text("YUMIR / 每天一点AI新知", 11, muted), new Point(52, 924));
             Right(dc, $"{index + 1:00} / {doc.Pages.Count:00}", 12, muted, 668, 923);
         }
         var image = new RenderTargetBitmap(1080, 1440, 144, 144, PixelFormats.Pbgra32); image.Render(visual); image.Freeze(); return image;

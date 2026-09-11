@@ -38,3 +38,13 @@ Windows 上安装 .NET 10 SDK，运行：
 程序运行时跟随现有精选刷新，约每 5 分钟获取资讯，发现新条目后发到配置频道。首次运行仅建立基线，不补发历史。已发送 ID 与待发送队列保存在本机；明确失败会重试，结果不确定的中断请求不盲目重发。
 
 本地配置位于 %LOCALAPPDATA%/YuMir/AIHOT.Desktop/telegram.local.json，字段为 bot_username、bot_token、channel_id；可添加 enabled:false 暂停。Token 不包含在源码、程序包中。状态写入同目录 telegram-status.txt。另一台电脑须单独配置，建议只在一台电脑启用以免跨电脑重复。
+
+## 2026-09-11 热榜与原文跳转更新
+
+桌面播报现跟随 AIHOT 网站过去 48 小时热点榜，按网站事件顺序展示，不再使用当天精选或补齐 100 条规则。点击直达该榜单摘要对应报道的原始网址；原文链接通过事件内同标题报道及其原文按钮核对，不猜测链接。分享落款统一为 `YUMIR / 每天一点AI新知`。
+
+热榜使用独立的 hot-cache.json，不改原有资讯历史。网站结构变化或原文解析失败时保留上次成功缓存。热榜读取依赖网站公开页面结构，后续页面变动可能需要更新解析器。
+
+新增源码和验证工具位于 modules。编译：`dotnet build modules/HotFeed/HotFeed.csproj -c Release`。运行验证：`dotnet run --project modules/HotTests/Test.csproj`。测试使用独立临时缓存，不改用户数据。
+
+HotPatch 可将主程序集的获取、展示与元信息方法接到热榜模块，并生成对应 deps.json。输入主程序集和模块路径，输出必须使用另一个文件名。同步包含 app 中已安装的程序集、热榜模块及依赖清单；此次未更新 Releases 压缩包，下载旧 Release 不包含本次改动。

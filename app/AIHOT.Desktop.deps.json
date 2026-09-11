@@ -10,7 +10,8 @@
       "AIHOT.Desktop/1.2.0": {
         "dependencies": {
           "QRCoder": "1.8.0",
-          "AIHOT.Cards": "1.0.0"
+          "AIHOT.Cards": "1.0.0",
+          "AIHOT.HotFeed": "1.0.0"
         },
         "runtime": {
           "AIHOT.Desktop.dll": {}
@@ -28,6 +29,11 @@
         "runtime": {
           "AIHOT.Cards.dll": {}
         }
+      },
+      "AIHOT.HotFeed/1.0.0": {
+        "runtime": {
+          "AIHOT.HotFeed.dll": {}
+        }
       }
     }
   },
@@ -40,7 +46,7 @@
     "QRCoder/1.8.0": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-RuvX3PEXU6pbY/I5ItAk800jm62r+YnoPLgyS2WTgwxkOnGkOfU9ORiipHUF0LkLyqM8rlroUCA319JjRYfRFQ==",
+      "sha512": "sha512-RuvX3PEXU6pbY/I5ItAk800jm62r\u002BYnoPLgyS2WTgwxkOnGkOfU9ORiipHUF0LkLyqM8rlroUCA319JjRYfRFQ==",
       "path": "qrcoder/1.8.0",
       "hashPath": "qrcoder.1.8.0.nupkg.sha512"
     },
@@ -48,6 +54,11 @@
       "sha512": "",
       "type": "project",
       "serviceable": false
+    },
+    "AIHOT.HotFeed/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
     }
   }
 }
