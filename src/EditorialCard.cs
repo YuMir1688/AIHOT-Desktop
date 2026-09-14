@@ -13,6 +13,51 @@ public static class EditorialCard
     public static readonly string[] Names = ["编辑精选", "午夜薄荷", "朱红刊物", "蓝调简报", "暖纸书签"];
     internal sealed record Palette(string Paper, string Ink, string Muted, string Accent, string Line, string Panel);
     internal static Palette GetPalette(int style) => Palettes[style];
+    internal static void DrawMasthead(DrawingContext dc, int style)
+    {
+        var p = Palettes[style]; const double left = 52;
+        Brush ink = B(p.Ink), muted = B(p.Muted), accent = B(p.Accent);
+            // Each edition has a distinct masthead; content and source keep the same reading order.
+            if (style == 0)
+            {
+                dc.DrawRectangle(accent, null, new Rect(52, 0, 44, 9));
+                var masthead = T("AI BRIEF", 48, ink, 390, true, 1.0, "Arial");
+                dc.DrawText(masthead, new Point(left - 2, 46));
+                double creditY = AlignedCredit(dc, masthead, 46, ink);
+                Right(dc, "读一条，知新事。", 12, muted, 668, creditY + 26);
+            }
+            else if (style == 1)
+            {
+                dc.DrawEllipse(accent, null, new Point(70, 73), 18, 18);
+                dc.DrawEllipse(B(p.Paper), null, new Point(79, 66), 16, 16);
+                dc.DrawText(T("AFTER HOURS", 31, ink, 400, true, 1.0, "Arial"), new Point(109, 54));
+                dc.DrawText(T("YuMir 的阅读室 / 夜读精选", 13, muted, 400), new Point(110, 93));
+                Right(dc, "AI HOT", 13, accent, 668, 61);
+            }
+            else if (style == 2)
+            {
+                dc.DrawRectangle(accent, null, new Rect(0, 0, 720, 129));
+                var masthead = T("AI HOT.", 56, Brushes.White, 400, true, 1, "Arial");
+                dc.DrawText(masthead, new Point(left - 3, 39));
+                double creditY = AlignedCredit(dc, masthead, 39, Brushes.White);
+                Right(dc, "THE AI EDIT", 12, Brushes.White, 668, creditY + 26);
+            }
+            else if (style == 3)
+            {
+                dc.DrawRectangle(accent, null, new Rect(left, 48, 5, 58));
+                dc.DrawText(T("AI / BRIEFING", 38, ink, 450, true, 1, "Arial"), new Point(76, 44));
+                dc.DrawText(T("YuMir 的阅读室 · 科技简报", 13, muted, 400), new Point(78, 93));
+                for (int i = 0; i < 4; i++) dc.DrawRectangle(accent, null, new Rect(612 + i * 14, 61 + i * 7, 5, 34 - i * 7));
+            }
+            else
+            {
+                dc.DrawText(T("阅 / 知新", 38, ink, 400, true, 1.0, "Microsoft YaHei UI"), new Point(left, 44));
+                dc.DrawText(T("YuMir 的阅读室", 13, muted, 400), new Point(left + 2, 98));
+                dc.DrawRectangle(accent, null, new Rect(617, 0, 51, 106));
+                dc.DrawText(T("AI", 23, B(p.Paper), 45, true, 1, "Arial"), new Point(628, 54));
+            }
+            if (style != 2) dc.DrawLine(new Pen(B(p.Line), 1), new Point(left, 132), new Point(668, 132));
+    }
     private static readonly Palette[] Palettes = [
         new("#F6F3EC", "#242721", "#70726B", "#C94F35", "#D8D6CC", "#EDEAE1"),
         new("#132D29", "#F0F4E9", "#B1C7BD", "#A9E7C8", "#37534B", "#1C3832"),
@@ -56,46 +101,7 @@ public static class EditorialCard
         using (var dc = visual.RenderOpen())
         {
             dc.DrawRectangle(B(p.Paper), null, new Rect(0, 0, 720, 960));
-            // Each edition has a distinct masthead; content and source keep the same reading order.
-            if (style == 0)
-            {
-                dc.DrawRectangle(accent, null, new Rect(52, 0, 44, 9));
-                var masthead = T("AI BRIEF", 48, ink, 390, true, 1.0, "Arial");
-                dc.DrawText(masthead, new Point(left - 2, 46));
-                double creditY = AlignedCredit(dc, masthead, 46, ink);
-                Right(dc, "读一条，知新事。", 12, muted, 668, creditY + 26);
-            }
-            else if (style == 1)
-            {
-                dc.DrawEllipse(accent, null, new Point(70, 73), 18, 18);
-                dc.DrawEllipse(B(p.Paper), null, new Point(79, 66), 16, 16);
-                dc.DrawText(T("AFTER HOURS", 31, ink, 400, true, 1.0, "Arial"), new Point(109, 54));
-                dc.DrawText(T("YuMir 的阅读室 / 夜读精选", 13, muted, 400), new Point(110, 93));
-                Right(dc, "AI HOT", 13, accent, 668, 61);
-            }
-            else if (style == 2)
-            {
-                dc.DrawRectangle(accent, null, new Rect(0, 0, 720, 129));
-                var masthead = T("AI HOT.", 56, Brushes.White, 400, true, 1, "Arial");
-                dc.DrawText(masthead, new Point(left - 3, 39));
-                double creditY = AlignedCredit(dc, masthead, 39, Brushes.White);
-                Right(dc, "THE AI EDIT", 12, Brushes.White, 668, creditY + 26);
-            }
-            else if (style == 3)
-            {
-                dc.DrawRectangle(accent, null, new Rect(left, 48, 5, 58));
-                dc.DrawText(T("AI / BRIEFING", 38, ink, 450, true, 1, "Arial"), new Point(76, 44));
-                dc.DrawText(T("YuMir 的阅读室 · 科技简报", 13, muted, 400), new Point(78, 93));
-                for (int i = 0; i < 4; i++) dc.DrawRectangle(accent, null, new Rect(612 + i * 14, 61 + i * 7, 5, 34 - i * 7));
-            }
-            else
-            {
-                dc.DrawText(T("阅 / 知新", 38, ink, 400, true, 1.0, "Microsoft YaHei UI"), new Point(left, 44));
-                dc.DrawText(T("YuMir 的阅读室", 13, muted, 400), new Point(left + 2, 98));
-                dc.DrawRectangle(accent, null, new Rect(617, 0, 51, 106));
-                dc.DrawText(T("AI", 23, B(p.Paper), 45, true, 1, "Arial"), new Point(628, 54));
-            }
-            if (style != 2) dc.DrawLine(new Pen(B(p.Line), 1), new Point(left, 132), new Point(668, 132));
+            DrawMasthead(dc, style);
             dc.DrawEllipse(accent, null, new Point(left + 3, 164), 3, 3);
             dc.DrawText(T(item.CategoryLabel, 14, accent, 300, true), new Point(left + 16, 152));
             var date = (item.PublishedAt ?? item.DiscoveredAt).ToOffset(TimeSpan.FromHours(8));

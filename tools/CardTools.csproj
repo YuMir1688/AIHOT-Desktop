@@ -6,4 +6,4 @@
     <Reference Include="QRCoder"><HintPath>../lib/QRCoder.dll</HintPath></Reference>
     <Reference Include="Mono.Cecil"><HintPath>../lib/Mono.Cecil.dll</HintPath></Reference>
   </ItemGroup>
-</Project>
+<ItemGroup><Reference Include="AIHOT.HotFeed"><HintPath>../app/AIHOT.HotFeed.dll</HintPath></Reference></ItemGroup></Project>

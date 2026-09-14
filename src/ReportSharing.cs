@@ -74,7 +74,7 @@ public sealed class ReportShareWindow : Window
     private readonly TextBlock selectionLabel = Label("", 12);
     private readonly TextBox lead = new() { AcceptsReturn = true, TextWrapping = TextWrapping.Wrap, Height = 91, Padding = new Thickness(10), VerticalScrollBarVisibility = ScrollBarVisibility.Auto };
     private readonly ListBox list = new() { Height = 242, HorizontalContentAlignment = HorizontalAlignment.Stretch, BorderThickness = new Thickness(0) };
-    private readonly UniformGrid styles = new() { Columns = 5 };
+    private readonly UniformGrid styles = new() { Columns = 3, Margin = new Thickness(-4, 0, -4, 0) };
     private readonly List<Button> styleButtons = new();
     private int selectedStyle;
     private readonly Button previous = ActionButton("← 上一张"), next = ActionButton("下一张 →");
@@ -100,9 +100,16 @@ public sealed class ReportShareWindow : Window
         {
             int choice = i;
             var content = new StackPanel();
-            content.Children.Add(new Border { Height = 7, CornerRadius = new CornerRadius(3), Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString(EditorialCard.GetPalette(i).Accent)), Margin = new Thickness(3, 2, 3, 7) });
-            var name = Label(EditorialCard.Names[i], 10); name.HorizontalAlignment = HorizontalAlignment.Center; content.Children.Add(name);
-            var button = new Button { Content = content, Padding = new Thickness(3, 5, 3, 2), Margin = new Thickness(0, 0, 4, 0), BorderThickness = new Thickness(1) };
+            var miniature = new ReportDocument(snapshot, snapshot.Items, "", i).Render(0);
+            var image = new Image { Source = miniature, Height = 86, Stretch = Stretch.Uniform };
+            RenderOptions.SetBitmapScalingMode(image, BitmapScalingMode.HighQuality);
+            var previewFrame = new Grid { Margin = new Thickness(0, 0, 0, 7) };
+            previewFrame.Children.Add(image);
+            var check = new Border { Width = 20, Height = 20, CornerRadius = new CornerRadius(10), Background = ReportSharing.Brush("#73E5C1"), HorizontalAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Top, Child = new TextBlock { Text = "✓", FontSize = 12, FontWeight = FontWeights.Bold, Foreground = ReportSharing.Brush("#10241E"), HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center }, Visibility = Visibility.Hidden };
+            previewFrame.Children.Add(check);
+            content.Children.Add(previewFrame);
+            var name = Label(EditorialCard.Names[i], 11); name.HorizontalAlignment = HorizontalAlignment.Center; content.Children.Add(name);
+            var button = new Button { Content = content, Tag = check, Padding = new Thickness(7), Margin = new Thickness(4, 0, 4, 8), BorderThickness = new Thickness(1), HorizontalContentAlignment = HorizontalAlignment.Stretch, ToolTip = "使用“" + EditorialCard.Names[i] + "”版式" };
             System.Windows.Automation.AutomationProperties.SetName(button, EditorialCard.Names[i]);
             button.Click += (_, _) => { selectedStyle = choice; PaintStyles(); Dirty(); };
             styleButtons.Add(button); styles.Children.Add(button);
@@ -286,6 +293,7 @@ public sealed class ReportShareWindow : Window
     {
         for (int i = 0; i < styleButtons.Count; i++)
         {
+            if (styleButtons[i].Tag is Border check) check.Visibility = i == selectedStyle ? Visibility.Visible : Visibility.Hidden;
             styleButtons[i].BorderBrush = ReportSharing.Brush(i == selectedStyle ? "#73E5C1" : "#304053");
             styleButtons[i].Background = ReportSharing.Brush(i == selectedStyle ? "#23493F" : "#202A38");
         }

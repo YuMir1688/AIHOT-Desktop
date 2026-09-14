@@ -57,6 +57,27 @@ static class Program
         if (args[0] == "patch") { Patch(args[1], args[2], args[3]); return; }
         if (args[0] == "verify") { Verify(args[1]); return; }
         if (args[0] == "verify-top-label") { VerifyTopLabel(args[1], args[2]); return; }
+        if (args[0] == "style-preview")
+        {
+            typeof(ReportTests).GetMethod("Initialize", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic)!.Invoke(null,null);
+            var sampleItem = new NewsItem { Id="preview", Title="今日 AI 动态", Summary="阅读值得关注的人工智能新进展。", Source=new(){Name="AIHOT"}, DiscoveredAt=DateTimeOffset.Now };
+            sampleItem.Links.Original = "https://aihot.news";
+            byte[] Header(BitmapSource image) { var bytes = new byte[1080*198*4]; image.CopyPixels(new System.Windows.Int32Rect(0,0,1080,198),bytes,1080*4,0); return bytes; }
+            for(int style=0;style<5;style++) {
+                var doc = new ReportDocument(new ReportSnapshot(2,DateTime.Today,DateTime.Today.AddDays(7),DateTimeOffset.Now,new[]{sampleItem}),new[]{sampleItem},"",style);
+                var expected = Header(EditorialCard.Render(sampleItem,sampleItem.Title,sampleItem.Summary!,style));
+                Require(expected.SequenceEqual(Header(doc.Render(0))) && expected.SequenceEqual(Header(doc.Render(1))) && expected.SequenceEqual(Header(ReportCards.RenderLongSection(doc,0))),"Matching mastheads across all sharing formats");
+            }
+            var window = new ReportShareWindow(new ReportSnapshot(2,DateTime.Today,DateTime.Today.AddDays(7),DateTimeOffset.Now,new[]{sampleItem}));
+            var buttons=(List<System.Windows.Controls.Button>)typeof(ReportShareWindow).GetField("styleButtons",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic)!.GetValue(window)!;
+            for(int i=0;i<5;i++) {
+                buttons[i].RaiseEvent(new System.Windows.RoutedEventArgs(System.Windows.Controls.Button.ClickEvent));
+                Require(buttons.Count(b=>((System.Windows.Controls.Border)b.Tag).Visibility==System.Windows.Visibility.Visible)==1,"One selected style");
+            }
+            buttons[0].RaiseEvent(new System.Windows.RoutedEventArgs(System.Windows.Controls.Button.ClickEvent));
+            typeof(ReportTests).GetMethod("Capture", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic)!.Invoke(null,new object[]{window,args[1]});
+            window.Close(); Console.WriteLine("PASS five template selections and preview layout"); return;
+        }
         if (args[0] == "report-test") { ReportTests.Run(args[1], args[2]); return; }
         if (args[0] == "report-ui") { ReportTests.Show(args[1]); return; }
         if (args[0] == "test-host")

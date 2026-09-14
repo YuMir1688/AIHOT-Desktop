@@ -105,7 +105,7 @@ public static class ReportCards
     }
     public static IReadOnlyList<string> Split(NewsItem item)
     {
-        double available = 742 - (164 + Heading(item.Title).Height + 52);
+        double available = 742 - (190 + Heading(item.Title).Height + 52);
         string text = item.Summary ?? "";
         if (text.Length == 0) return new[] { "" };
         var parts = new List<string>(); int start = 0;
@@ -141,14 +141,8 @@ public static class ReportCards
         {
             dc.DrawRectangle(B(p.Paper), null, new Rect(0, 0, 720, 960));
             var ink = B(p.Ink); var muted = B(p.Muted); var accent = B(p.Accent); var line = new Pen(B(p.Line), 1);
-            bool red = doc.Style == 2;
-            if (red) dc.DrawRectangle(accent, null, new Rect(0, 0, 720, 110));
-            else if (doc.Style == 4) dc.DrawRectangle(accent, null, new Rect(628, 0, 40, 25));
-            else dc.DrawRectangle(accent, null, new Rect(52, 0, 40, 7));
-            dc.DrawText(Text("YuMir 的阅读室", 22, red ? Brushes.White : ink, 350, true), new Point(52, 43));
-            Right(dc, $"AI {doc.Snapshot.Name}  /  {(index == 0 ? "概览" : "资讯")}", 14, red ? Brushes.White : accent, 668, 50);
-            if (!red) dc.DrawLine(line, new Point(52, 106), new Point(668, 106));
-            if (index == 0) Cover(dc, doc, ink, muted, accent, line);
+            EditorialCard.DrawMasthead(dc, doc.Style);
+            if (index == 0) { dc.PushTransform(new TranslateTransform(0,26)); Cover(dc, doc, ink, muted, accent, line); dc.Pop(); }
             else Article(dc, doc, index, ink, muted, accent, line);
             dc.DrawLine(line, new Point(52, 910), new Point(668, 910));
             dc.DrawText(Text("YUMIR / 每天一点AI新知", 11, muted), new Point(52, 924));
@@ -210,11 +204,11 @@ public static class ReportCards
     private static void Article(DrawingContext dc, ReportDocument doc, int index, Brush ink, Brush muted, Brush accent, Pen line)
     {
         var page = doc.Pages[index]; var item = page.Item!;
-        dc.DrawText(Text($"{page.ItemIndex:00} / {item.CategoryLabel}" + (page.Parts > 1 ? $"  ·  {page.Part}/{page.Parts} 续页" : ""), 13, accent), new Point(52, 123));
-        Right(dc, doc.Snapshot.Period == 1 ? doc.Snapshot.Range : $"{doc.Snapshot.Start:MM.dd} — {doc.Snapshot.End.AddDays(-1):MM.dd}", 13, muted, 668, 123);
+        dc.DrawText(Text($"{page.ItemIndex:00} / {item.CategoryLabel}" + (page.Parts > 1 ? $"  ·  {page.Part}/{page.Parts} 续页" : ""), 13, accent), new Point(52, 149));
+        Right(dc, doc.Snapshot.Period == 1 ? doc.Snapshot.Range : $"{doc.Snapshot.Start:MM.dd} — {doc.Snapshot.End.AddDays(-1):MM.dd}", 13, muted, 668, 149);
         var heading = Heading(item.Title); heading.SetForegroundBrush(ink);
-        dc.DrawText(heading, new Point(52, 164));
-        double bodyY = 164 + heading.Height + 52;
+        dc.DrawText(heading, new Point(52, 190));
+        double bodyY = 190 + heading.Height + 52;
         dc.DrawText(Text(page.Part == 1 ? "资讯摘要" : "摘要 / 接上页", 13, muted), new Point(52, bodyY - 32));
         dc.DrawText(Text(page.Text.Length > 0 ? page.Text : "此条暂无摘要，请阅读原文。", 24, ink, 616, false, 1.65), new Point(52, bodyY));
         SourceFooter(dc, item, ink, muted, line);
@@ -256,15 +250,12 @@ public static class ReportCards
             var categories = doc.Snapshot.Items.GroupBy(n => n.CategoryLabel).OrderByDescending(g => g.Count()).ToArray();
             var lead = Text(doc.Lead, 21, ink, 616, false, 1.6);
             double categoryY = 425 + (doc.Lead.Length > 0 ? lead.Height + 25 : 0);
-            height = categoryY + 35 + Math.Max(1, categories.Length) * 32 + 26;
+            height = categoryY + 35 + Math.Max(1, categories.Length) * 32 + 52;
             if (doc.Pages.Count == 1) height += 32;
             using var dc = visual.RenderOpen();
             dc.DrawRectangle(B(p.Paper), null, new Rect(0, 0, 720, height + 1));
-            if(doc.Style == 2) dc.DrawRectangle(accent, null, new Rect(0, 0, 720, 110));
-            else dc.DrawRectangle(accent, null, new Rect(52, 0, 40, 7));
-            dc.DrawText(Text("YuMir 的阅读室", 22, doc.Style == 2 ? Brushes.White : ink, 350, true), new Point(52, 43));
-            Right(dc, $"AI {doc.Snapshot.Name}  /  概览", 14, doc.Style == 2 ? Brushes.White : accent, 668, 50);
-            if (doc.Style != 2) dc.DrawLine(line, new Point(52, 106), new Point(668, 106));
+            EditorialCard.DrawMasthead(dc, doc.Style);
+            dc.PushTransform(new TranslateTransform(0,26));
             dc.DrawText(Text($"AI {doc.Snapshot.Name}", 66, ink, 616, true, 1.2), new Point(48, 133));
             dc.DrawText(Text(doc.Snapshot.Range, 20, muted), new Point(52, 233));
             int[] values = [doc.Snapshot.Items.Count, doc.Selected.Count, doc.Snapshot.Items.Select(n => n.Source.Name).Distinct().Count()];
@@ -292,6 +283,7 @@ public static class ReportCards
                 dc.DrawText(number, new Point(668 - number.Width, centerY - numberBounds.Top - numberBounds.Height / 2)); y += 32;
             }
             if (categories.Length == 0) dc.DrawText(Text("本期暂无已存档资讯", 20, ink), new Point(52, y));
+            dc.Pop();
             if (doc.Pages.Count == 1) LongCoverage(dc, doc, muted, height - 40);
             dc.DrawLine(line, new Point(52, height - 1), new Point(668, height - 1));
         }
