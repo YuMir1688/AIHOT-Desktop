@@ -57,6 +57,23 @@ static class Program
         if (args[0] == "patch") { Patch(args[1], args[2], args[3]); return; }
         if (args[0] == "verify") { Verify(args[1]); return; }
         if (args[0] == "verify-top-label") { VerifyTopLabel(args[1], args[2]); return; }
+        if (args[0] == "section-test")
+        {
+            typeof(ReportTests).GetMethod("Initialize",System.Reflection.BindingFlags.Static|System.Reflection.BindingFlags.NonPublic)!.Invoke(null,null);
+            var readerType=typeof(NewsItem).Assembly.GetType("AiHot.ReaderWindow")!;
+            var readerWindow=(System.Windows.Window)Activator.CreateInstance(readerType,new object[]{new List<NewsItem>(),"测试"})!;
+            IEnumerable<System.Windows.DependencyObject> Walk(System.Windows.DependencyObject obj) { yield return obj; foreach(var child in System.Windows.LogicalTreeHelper.GetChildren(obj).OfType<System.Windows.DependencyObject>())foreach(var found in Walk(child))yield return found; }
+            var tabs=Walk(readerWindow).OfType<System.Windows.Controls.Button>().Where(b=>new[]{"资讯","日报","周报","月报"}.Contains(b.Content as string)).ToArray();
+            void SelectTab(int n) {tabs[n].RaiseEvent(new System.Windows.RoutedEventArgs(System.Windows.Controls.Button.ClickEvent));var frame=new System.Windows.Threading.DispatcherFrame();readerWindow.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.ApplicationIdle,new Action(()=>frame.Continue=false));System.Windows.Threading.Dispatcher.PushFrame(frame);}
+            Require(tabs.Length==4,"Four navigation tabs");
+            var file=Path.Combine(Storage.Root,"history.json"); var before=File.GetLastWriteTimeUtc(file);
+            for(int n=1;n<4;n++)SelectTab(n);
+            var panels=Walk(readerWindow).Where(o=>o.GetType().Name=="ReportPanel").ToArray();Require(panels.Length==3,"Three retained report panels");
+            var timer=System.Diagnostics.Stopwatch.StartNew();for(int cycle=0;cycle<5;cycle++)for(int n=0;n<4;n++)SelectTab(n);
+            Require(Walk(readerWindow).Where(o=>o.GetType().Name=="ReportPanel").SequenceEqual(panels),"Repeated tab switches reuse panels");
+            Require(File.GetLastWriteTimeUtc(file)==before,"Tab switching never rewrites history");
+            Console.WriteLine($"PASS cached panels, 20 tab switches in {timer.ElapsedMilliseconds} ms before display layout, no archive writes");readerWindow.Close();return;
+        }
         if (args[0] == "style-preview")
         {
             typeof(ReportTests).GetMethod("Initialize", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic)!.Invoke(null,null);
@@ -257,6 +274,15 @@ static class Program
             var discard = Instruction.Create(OpCodes.Pop);
             noteIl.InsertAfter(concat, discard);
             noteIl.InsertAfter(discard, Instruction.Create(OpCodes.Ldstr, "仅汇总本机已收录资讯，按北京时间统计。"));
+        }
+        foreach (var nested in reader.NestedTypes)
+        foreach (var method in nested.Methods.Where(m=>m.HasBody))
+        {
+            if (!method.Body.Instructions.Any(i=>i.Operand is MethodReference reference && (reference.FullName.Contains("ReportPanel::.ctor") || reference.FullName.Contains("ReaderSections::Switch")))) continue;
+            method.Body = new MethodBody(method);
+            var sectionIl=method.Body.GetILProcessor(); sectionIl.Emit(OpCodes.Ldarg_0);
+            sectionIl.Emit(OpCodes.Call,module.ImportReference(newModule.Types.Single(t=>t.FullName=="YuMir.Cards.ReaderSections").Methods.Single(m=>m.Name=="Switch")));
+            sectionIl.Emit(OpCodes.Ret);
         }
         module.Write(output);
         Console.WriteLine("Patched share rendering and report sharing hook; existing report calculation preserved.");
