@@ -1,17 +1,21 @@
 using AiHot;
-using System.IO;
 using YuMir.Hot;
-using System.Net.Http;
-Storage.Root=Path.Combine(Path.GetTempPath(),"aihot-hot-test-"+Guid.NewGuid().ToString("N"));
-using var http=new HttpClient();http.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0");
-var html=await http.GetStringAsync(HotFeed.Url);
-var items=HotFeed.Parse(html);
-if(items.Count==0)throw new Exception("Expected live ranking");
-if(!NewsService.LatestHundred(items,DateTimeOffset.Now).Select(n=>n.Id).SequenceEqual(items.Select(n=>n.Id)))throw new Exception("Order changed");
-for(int i=0;i<items.Count;i++)Console.WriteLine($"{i+1:00} {items[i].Title}");
-try{HotFeed.Parse("<html>invalid response</html>");throw new Exception("Invalid response accepted");}catch(InvalidOperationException){}
-var empty=HotFeed.Parse("<script type=\"application/ld+json\">{\"@type\":\"ItemList\",\"itemListElement\":[]}</script>");if(empty.Count!=0)throw new Exception("Empty feed failed");
-using var service=new NewsService();await service.Refresh(new Settings());
-if(service.VisibleItems(new Settings()).Count==0)throw new Exception("Bridge refresh failed");
-foreach(var item in service.VisibleItems(new Settings())){if(new Uri(item.Links.Original).Host=="aihot.news")throw new Exception("Original link unresolved");Console.WriteLine(item.Title+" => "+item.Links.Original);}
-Console.WriteLine($"PASS {items.Count} website events, original order, links, invalid/empty response, patched refresh, isolated cache");
+using System.IO;
+using System.Text.Json;
+Storage.Root=Path.Combine(Path.GetTempPath(),"aihot-today-test-"+Guid.NewGuid().ToString("N"));
+var now=new DateTimeOffset(2026,9,14,12,0,0,TimeSpan.FromHours(8));
+NewsItem Item(string id,DateTimeOffset t)=>new(){Id=id,Title=id,PublishedAt=t,DiscoveredAt=t};
+var records=Enumerable.Range(0,130).Select(i=>Item(i.ToString(),now.AddMinutes(-i))).ToList();
+records.Add(Item("yesterday",now.AddHours(-13)));records.Add(Item("future",now.AddMinutes(1)));records.Add(records[0]);
+var filtered=HotFeed.KeepOrder(records,now);
+if(filtered.Count!=130||filtered[0].Id!="0")throw new Exception("Date, limit, duplicate or ordering failure");
+if(HotFeed.KeepOrder(filtered,now.AddDays(1)).Count!=0)throw new Exception("Midnight stale data");
+string Page(IEnumerable<NewsItem> list,bool more,string cursor)=>JsonSerializer.Serialize(new {schemaVersion=1,items=list,page=new{hasMore=more,nextCursor=cursor}},Storage.Json);
+int calls=0;var paged=await HotFeed.Fetch(now,url=>Task.FromResult(++calls==1?Page(records.Take(100),true,"next"):Page(records.Skip(100),false,"")));
+if(calls!=2||paged.Count!=130)throw new Exception("Pagination failure");
+try{await HotFeed.Fetch(now,url=>Task.FromResult(Page(records.Take(1),true,"loop")));throw new Exception("Repeated cursor accepted");}catch(InvalidOperationException){}
+if((await HotFeed.Fetch(now,url=>Task.FromResult(Page(Array.Empty<NewsItem>(),false,"")))).Count!=0)throw new Exception("Empty day failure");
+using var service=new NewsService();await service.Refresh(new Settings());var live=service.VisibleItems(new Settings());
+if(live.Count==0||live.Any(n=>NewsService.BeijingDate(n.PublishedAt??n.DiscoveredAt)!=NewsService.BeijingDate(DateTimeOffset.UtcNow)))throw new Exception("Live day mismatch");
+if(!service.Cache.Items.Select(n=>n.Id).SequenceEqual(live.Select(n=>n.Id)))throw new Exception("Cache not synchronized");
+Console.WriteLine($"PASS pagination, 130 items without cap, duplicates, Beijing midnight, future exclusion, empty day, repeated cursor; live patched feed: {live.Count} items; first: {live[0].Title}");

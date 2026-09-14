@@ -32,7 +32,7 @@ public static class ReaderSidebar
             var navigation = (Button)Get(name); navigation.Width = 84; navigation.MinWidth = 84; navigation.MaxWidth = 84;
         }
         var count = (TextBlock)Get("count");
-        if (count.Text.StartsWith("全部资讯")) count.Text = "今日精选 TOP";
+        if (count.Text.StartsWith("全部资讯")) count.Text = "今日全部 AI 动态";
         var results = (StackPanel)Get("results");
         var selected = Get("selected") as string;
         var cards = (Dictionary<string, Button>)Get("cards");

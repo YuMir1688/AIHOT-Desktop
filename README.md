@@ -48,3 +48,5 @@ Windows 上安装 .NET 10 SDK，运行：
 新增源码和验证工具位于 modules。编译：`dotnet build modules/HotFeed/HotFeed.csproj -c Release`。运行验证：`dotnet run --project modules/HotTests/Test.csproj`。测试使用独立临时缓存，不改用户数据。
 
 HotPatch 可将主程序集的获取、展示与元信息方法接到热榜模块，并生成对应 deps.json。输入主程序集和模块路径，输出必须使用另一个文件名。同步包含 app 中已安装的程序集、热榜模块及依赖清单；此次未更新 Releases 压缩包，下载旧 Release 不包含本次改动。
+## 2026-09-14 今日全部动态
+桌面播报与阅读面板统一读取全部动态接口的所有分页，按北京时间显示当天内容，最新在前，无 TOP100 上限。独立 today-all-cache.json 缓存，跨日不展示昨日内容；原文链接沿用接口字段。已验证分页、130 条无截断、去重、日期边界及真实接口。此次未更新 Release 压缩包。
