@@ -62,6 +62,11 @@ static class Program
             typeof(ReportTests).GetMethod("Initialize", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic)!.Invoke(null,null);
             var sampleItem = new NewsItem { Id="preview", Title="今日 AI 动态", Summary="阅读值得关注的人工智能新进展。", Source=new(){Name="AIHOT"}, DiscoveredAt=DateTimeOffset.Now };
             sampleItem.Links.Original = "https://aihot.news";
+            var many = Enumerable.Range(0,410).Select(i=> new NewsItem { Id=i.ToString(),Title=sampleItem.Title,Summary=sampleItem.Summary,Links=sampleItem.Links,DiscoveredAt=DateTimeOffset.Now }).ToArray();
+            var large = new ReportDocument(new ReportSnapshot(3,DateTime.Today,DateTime.Today.AddMonths(1),DateTimeOffset.Now,many),many,"",0);
+            var watch = System.Diagnostics.Stopwatch.StartNew();
+            for(int n=0;n<1000;n++) { var changed=large.WithStyle(n%5); Require(ReferenceEquals(large.Pages,changed.Pages)&&ReferenceEquals(large.Selected,changed.Selected)&&changed.Style==n%5,"Style change reuses 410-item pagination"); }
+            Console.WriteLine($"PASS 1000 style document changes for 410 items: {watch.ElapsedMilliseconds} ms (excluding drawing)");
             byte[] Header(BitmapSource image) { var bytes = new byte[1080*198*4]; image.CopyPixels(new System.Windows.Int32Rect(0,0,1080,198),bytes,1080*4,0); return bytes; }
             for(int style=0;style<5;style++) {
                 var doc = new ReportDocument(new ReportSnapshot(2,DateTime.Today,DateTime.Today.AddDays(7),DateTimeOffset.Now,new[]{sampleItem}),new[]{sampleItem},"",style);

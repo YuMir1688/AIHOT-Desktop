@@ -44,6 +44,12 @@ public sealed class ReportDocument
         }
         Pages = pages;
     }
+    private ReportDocument(ReportDocument source, int style)
+    {
+        Snapshot = source.Snapshot; Selected = source.Selected; Lead = source.Lead;
+        Pages = source.Pages; Style = style;
+    }
+    public ReportDocument WithStyle(int style) => style is >= 0 and <= 4 ? new ReportDocument(this, style) : throw new ArgumentOutOfRangeException(nameof(style));
     public BitmapSource Render(int index) => ReportCards.Render(this, index);
     public static void Save(BitmapSource image, string path)
     {

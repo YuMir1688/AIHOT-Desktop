@@ -62,7 +62,26 @@ public sealed class ReportShareWindow : Window
     private readonly List<Entry> entries;
     private readonly Image preview = new() { Stretch = Stretch.Uniform, MaxWidth = 520, HorizontalAlignment = HorizontalAlignment.Center };
     private readonly ListBox longPreview = new() { BorderThickness = new Thickness(0), Background = Brushes.Transparent, HorizontalContentAlignment = HorizontalAlignment.Stretch };
-    private sealed class LongPart(ReportDocument doc, int index) { public System.Windows.Media.Imaging.BitmapSource Source => ReportCards.RenderLongSection(doc, index); }
+    private sealed class LongPart(ReportDocument doc, int index) : System.ComponentModel.INotifyPropertyChanged {
+        public event System.ComponentModel.PropertyChangedEventHandler? PropertyChanged;
+        public System.Windows.Media.Imaging.BitmapSource Source => ReportCards.RenderLongSection(doc, index);
+        public void Restyle(ReportDocument next) { doc = next; PropertyChanged?.Invoke(this, new(nameof(Source))); }
+    }
+    private int styleRequest;
+    private void ChangeStyle(int choice)
+    {
+        if (choice == selectedStyle || exporting != null) return;
+        selectedStyle = choice; PaintStyles();
+        if (document == null) { Dirty(); return; }
+        document = document.WithStyle(choice);
+        int request = ++styleRequest;
+        Dispatcher.BeginInvoke(DispatcherPriority.Background, new Action(() => {
+            if (request != styleRequest || document == null) return;
+            if (isLong && longPreview.ItemsSource is LongPart[] parts) {
+                foreach (var part in parts) part.Restyle(document);
+            } else ShowPage();
+        }));
+    }
     private readonly Button longMode = ActionButton("一张长图"), cardsMode = ActionButton("多张卡片");
     private bool isLong = true;
     private readonly DispatcherTimer refresh = new() { Interval = TimeSpan.FromMilliseconds(450) };
@@ -96,11 +115,12 @@ public sealed class ReportShareWindow : Window
         lead.Foreground = list.Foreground = ReportSharing.Brush("#EBF1F6");
         lead.BorderBrush = ReportSharing.Brush("#304053");
         ScrollViewer.SetHorizontalScrollBarVisibility(list, ScrollBarVisibility.Disabled);
+        var templateDocument = new ReportDocument(snapshot, snapshot.Items, "", 0);
         for (int i = 0; i < EditorialCard.Names.Length; i++)
         {
             int choice = i;
             var content = new StackPanel();
-            var miniature = new ReportDocument(snapshot, snapshot.Items, "", i).Render(0);
+            var miniature = templateDocument.WithStyle(i).Render(0);
             var image = new Image { Source = miniature, Height = 86, Stretch = Stretch.Uniform };
             RenderOptions.SetBitmapScalingMode(image, BitmapScalingMode.HighQuality);
             var previewFrame = new Grid { Margin = new Thickness(0, 0, 0, 7) };
@@ -111,7 +131,7 @@ public sealed class ReportShareWindow : Window
             var name = Label(EditorialCard.Names[i], 11); name.HorizontalAlignment = HorizontalAlignment.Center; content.Children.Add(name);
             var button = new Button { Content = content, Tag = check, Padding = new Thickness(7), Margin = new Thickness(4, 0, 4, 8), BorderThickness = new Thickness(1), HorizontalContentAlignment = HorizontalAlignment.Stretch, ToolTip = "使用“" + EditorialCard.Names[i] + "”版式" };
             System.Windows.Automation.AutomationProperties.SetName(button, EditorialCard.Names[i]);
-            button.Click += (_, _) => { selectedStyle = choice; PaintStyles(); Dirty(); };
+            button.Click += (_, _) => { ChangeStyle(choice); };
             styleButtons.Add(button); styles.Children.Add(button);
         }
         PaintStyles();
