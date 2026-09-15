@@ -1,0 +1,1 @@
+Removes global Ctrl+Alt+A registration and its UI hints. Run dotnet run --project modules/NoHotkey/NoHotkey.csproj -- input.dll output.dll after any main-assembly rebuild that reintroduces hotkey registration. Use distinct input/output files. The tool verifies no RegisterHotKey calls remain. The installed app binary already includes this patch. Release archives were not updated.
