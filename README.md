@@ -41,7 +41,7 @@
 
 ## 获取与运行
 
-### 普通用户
+### 直接下载使用
 
 查看 [Releases](https://github.com/YuMir1688/AIHOT-Desktop/releases) 的版本说明后下载程序包，解压到独立目录并运行 `AIHOT.Desktop.exe`。
 
