@@ -1,3 +1,3 @@
 # Project maintenance
 
-After completing and validating requested changes, sync the changed source and installed application binaries to the existing private GitHub repository automatically. The user explicitly authorized this on 2026-09-11; no repeated confirmation is needed. Preserve remote changes and keep the repository private. Never commit local Telegram credentials, settings, cache, history, or delivery state. State clearly if release ZIP assets were not updated.
+Preserve user changes and remote commits. Never commit local credentials, settings, caches, history, delivery state, or private screenshots. Validate changes with build.ps1 and test.ps1. Do not change repository visibility without the owner's explicit request. State clearly when release assets were not updated. Do not overwrite an installed application as part of source-build tests. Third-party content is not licensed under the project's MIT license.

@@ -4,3 +4,13 @@
 *.zip
 
 **/telegram*.json
+artifacts/
+**/preview-profile/
+**/settings.json
+**/*cache.json
+**/history.json
+.env
+.env.*
+*.pfx
+*.pem
+*-result.txt

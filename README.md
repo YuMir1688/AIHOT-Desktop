@@ -1,4 +1,40 @@
-# AIHOT 桌面播报 · 私有备份
+# AIHOT Desktop · YuMir 的 AI 阅读角落
+
+独立的 Windows AI 资讯桌面客户端：桌面播报、阅读室、日报/周报/月报以及带原文二维码的分享卡片。项目不是 AIHOT 官方客户端。
+
+## 当前版本
+
+- 北京时间当天的全部动态，自动翻页、按发布时间排序，不凑 100 条。
+- 点击资讯打开接口提供的原文链接。
+- 阅读室支持分类、搜索和历史报告；分享卡片支持多种样式。
+- 不注册 Ctrl+Alt+A 全局快捷键。
+- 缓存与设置保存在本机，不随源码分发。Telegram 推送为可选配置。
+
+## 从源码构建
+
+环境：Windows 10/11、PowerShell 7、.NET 10 SDK。运行生成程序需要 .NET 10 Desktop Runtime；安装 SDK 的开发机已包含该运行环境。
+
+```powershell
+./build.ps1
+./test.ps1
+./artifacts/app/AIHOT.Desktop.exe
+```
+
+源码构建不会替换已安装的程序，也不会迁移用户资料。发布目录为 `artifacts/app`，依赖系统安装的运行环境；旧 Releases 包不代表最新源码。
+
+`core/` 已补入主程序源码。构建先编译主程序，再编译 `src/` 增强模块和 `modules/` 数据模块，最后通过有源码的 Mono.Cecil 构建工具连接这些历史模块。`lib/AIHOT.Desktop.dll` 是旧兼容引用，构建时会被源码生成的版本替换；不再依靠它作为唯一的主程序实现。后续计划逐步用普通项目引用取代程序集补丁。
+
+测试默认离线，覆盖分页、130 条不截断、跨日、去重、Telegram 去重及分享渲染连接。可选真实数据测试：`dotnet run --project modules/HotTests/Test.csproj -- --live`。首次开源整理的构建已验证，但从旧源码重建的界面细节仍需人工回归；不要假定与历史打包二进制逐字节一致。
+
+## 许可与参与
+
+项目自有代码采用 [MIT](LICENSE)；第三方组件与资讯内容不包含在此授权中，见 [第三方说明](THIRD_PARTY_NOTICES.md)。参与方式见 [CONTRIBUTING](CONTRIBUTING.md)，安全说明见 [SECURITY](SECURITY.md)。
+
+项目创作与维护｜YuMir
+
+---
+
+## 历史维护记录（不作为当前构建说明）
 
 2026-09-10 更新：日报/周报/月报长图、独立资讯挑选面板、统一深色控件、固定署名与标题平滑滚动。
 

@@ -15,6 +15,8 @@ int calls=0;var paged=await HotFeed.Fetch(now,url=>Task.FromResult(++calls==1?Pa
 if(calls!=2||paged.Count!=130)throw new Exception("Pagination failure");
 try{await HotFeed.Fetch(now,url=>Task.FromResult(Page(records.Take(1),true,"loop")));throw new Exception("Repeated cursor accepted");}catch(InvalidOperationException){}
 if((await HotFeed.Fetch(now,url=>Task.FromResult(Page(Array.Empty<NewsItem>(),false,"")))).Count!=0)throw new Exception("Empty day failure");
+Console.WriteLine("PASS offline: pagination, 130 items, duplicates, Beijing midnight, future exclusion, empty day, repeated cursor");
+if(!args.Contains("--live"))return;
 using var service=new NewsService();await service.Refresh(new Settings());var live=service.VisibleItems(new Settings());
 if(live.Count==0||live.Any(n=>NewsService.BeijingDate(n.PublishedAt??n.DiscoveredAt)!=NewsService.BeijingDate(DateTimeOffset.UtcNow)))throw new Exception("Live day mismatch");
 if(!service.Cache.Items.Select(n=>n.Id).SequenceEqual(live.Select(n=>n.Id)))throw new Exception("Cache not synchronized");
