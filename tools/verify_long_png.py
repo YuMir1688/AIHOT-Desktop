@@ -1,7 +1,7 @@
 import json
 import pathlib
 import sys
-sys.path.insert(0, r'C:\Users\Administrator\AppData\Local\AIHOT-DesignTools\python')
+# Install dependencies in the active environment: python -m pip install Pillow zxing-cpp
 import zxingcpp
 from PIL import Image
 
