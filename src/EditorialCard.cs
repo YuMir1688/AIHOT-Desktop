@@ -1,4 +1,4 @@
-﻿using System.Globalization;
+using System.Globalization;
 using System.IO;
 using System.Windows;
 using System.Windows.Media;
@@ -155,7 +155,7 @@ public static class EditorialCard
                 double labelY = bodyY - 34;
 
                 bool excerpt = !string.IsNullOrEmpty(item.Summary) && item.Summary.Trim().Length > summary.Length && item.Summary.Trim().StartsWith(summary, StringComparison.Ordinal);
-                var label = T(excerpt ? "摘要节选 / 完整内容见原文" : "内容导读", 13, muted, width - 40);
+                var label = T(excerpt ? "摘要节选" : "内容导读", 13, muted, width - 40);
                 var labelOrigin = new Point(left + 34, labelY);
                 var glyphBounds = label.BuildGeometry(labelOrigin).Bounds;
                 dc.DrawRectangle(accent, null, new Rect(left, glyphBounds.Top + glyphBounds.Height / 2 - 1, 23, 2));
@@ -217,4 +217,5 @@ public static class EditorialCard
         return y;
     }
 }
+
 
