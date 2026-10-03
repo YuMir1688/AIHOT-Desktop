@@ -81,8 +81,18 @@ static class Program
             var frame=new System.Windows.Threading.DispatcherFrame();var delay=new System.Windows.Threading.DispatcherTimer {Interval=TimeSpan.FromMilliseconds(600)};delay.Tick+=(_,_)=>{delay.Stop();frame.Continue=false;};delay.Start();System.Windows.Threading.Dispatcher.PushFrame(frame);
             Require(saveButton.IsEnabled,"Preview refreshes automatically after editing");
             Require(!Walk(host.Child).OfType<System.Windows.Controls.Button>().Any(b=>b.Content as string=="更新预览"),"Manual update button removed");
+            var styleTiles=Walk(host.Child).OfType<System.Windows.Controls.Button>().Where(b=>b.ToolTip as string==EditorialCard.Names[0]||b.ToolTip as string==EditorialCard.Names[1]).ToArray();
+            var posterImage=Walk(host.Child).OfType<System.Windows.Controls.Image>().First();var originalPreview=posterImage.Source;
+            styleTiles[1].RaiseEvent(new System.Windows.RoutedEventArgs(System.Windows.Controls.Button.ClickEvent));
+            styleTiles[0].RaiseEvent(new System.Windows.RoutedEventArgs(System.Windows.Controls.Button.ClickEvent));
+            Require(ReferenceEquals(originalPreview,posterImage.Source),"Returning to a style reuses the current edited preview");
             share.Close();Require(host.Visibility==System.Windows.Visibility.Collapsed,"Share returns to reading");
             var report=new ReportShareWindow(new ReportSnapshot(2,DateTime.Today,DateTime.Today.AddDays(7),DateTimeOffset.Now,new[]{shareItem}));Embed(report,"分享周报");var reportView=host.Child;
+            var documentField=typeof(ReportShareWindow).GetField("document",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic)!;
+            var originalDocument=documentField.GetValue(report);Require(originalDocument!=null,"Report preview generated on first open");
+            var setMode=typeof(ReportShareWindow).GetMethod("SetMode",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic)!;
+            setMode.Invoke(report,new object[]{false});setMode.Invoke(report,new object[]{true});
+            Require(ReferenceEquals(originalDocument,documentField.GetValue(report)),"Switching long/card modes preserves document pagination");
             var adjust=Walk(host.Child).OfType<System.Windows.Controls.Button>().Single(b=>b.Content as string=="调整分享资讯");adjust.RaiseEvent(new System.Windows.RoutedEventArgs(System.Windows.Controls.Button.ClickEvent));
             Require(!ReferenceEquals(host.Child,reportView),"Picker replaces report within same reader");
             var done=Walk(host.Child).OfType<System.Windows.Controls.Button>().Single(b=>b.Content as string=="完成挑选");done.RaiseEvent(new System.Windows.RoutedEventArgs(System.Windows.Controls.Button.ClickEvent));

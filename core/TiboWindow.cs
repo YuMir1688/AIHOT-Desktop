@@ -24,6 +24,7 @@ public sealed class TiboPanel : UserControl
     DateTime month = new(Today.Year,Today.Month,1);
     DateTime? selectedDate;
     readonly StackPanel details = new();
+    Border? calendarFrame, detailFrame; double preferredHeight;
     Saved saved = new(); TiboData? data; bool busy, closed; DateTimeOffset retryAt;
     public TiboPanel(string? sampleJson=null, bool online=true)
     {
@@ -32,6 +33,7 @@ public sealed class TiboPanel : UserControl
         var actions=new StackPanel {Orientation=Orientation.Horizontal};actions.Children.Add(refresh);DockPanel.SetDock(actions,Dock.Right);top.Children.Add(actions);top.Children.Add(Ui.Text("重置日历",18));DockPanel.SetDock(top,Dock.Top);root.Children.Add(top);
         status.Margin=new Thickness(0,8,0,0);status.Visibility=Visibility.Collapsed;DockPanel.SetDock(status,Dock.Bottom);root.Children.Add(status);
         root.Children.Add(content);Content=root;
+        content.SizeChanged+=(_,_)=>FitPanels();
         try { saved=sampleJson==null?Storage.Read<Saved>("tibo-calendar-cache.json"):new Saved{Json=sampleJson};if(saved.Json.Length>0)data=TiboData.Parse(saved.Json); } catch { saved=new(); }
         Paint();refresh.Click+=async(_,_)=>await Refresh();timer.Tick+=async(_,_)=>await Refresh();
         if(online)Loaded+=async(_,_)=>{timer.Start();await Refresh();};
@@ -45,9 +47,15 @@ public sealed class TiboPanel : UserControl
         button.Click+=(_,_)=>{if(!TiboData.SafeLink(url))return;try {Process.Start(new ProcessStartInfo(url){UseShellExecute=true});}catch {status.Visibility=Visibility.Visible;status.Text="无法打开浏览器，请稍后重试。";}};return button;
     }
     string Footer() => data==null ? "尚未取得监控数据" : $"来源：AIHOT · 核验 {TiboData.Time(data.CheckedAt)} · 北京时间 · 每 10 分钟刷新";
+    void FitPanels()
+    {
+        if(calendarFrame==null || detailFrame==null || content.ActualHeight<=0)return;
+        double height=Math.Min(preferredHeight,content.ActualHeight);
+        calendarFrame.Height=detailFrame.Height=height;
+    }
     void Paint()
     {
-        status.Visibility=Visibility.Collapsed;content.Children.Clear();content.RowDefinitions.Clear();content.RowDefinitions.Add(new RowDefinition());status.Text=Footer();
+        calendarFrame=detailFrame=null;status.Visibility=Visibility.Collapsed;content.Children.Clear();content.RowDefinitions.Clear();content.RowDefinitions.Add(new RowDefinition());status.Text=Footer();
         if(data==null || data.Events.Length==0){content.Children.Add(Ui.Text(data==null?"尚未取得监控数据":"近期暂无重置或发卡记录",18));return;}
         var layout=new Grid();layout.ColumnDefinitions.Add(new ColumnDefinition {Width=new GridLength(1.35,GridUnitType.Star)});layout.ColumnDefinitions.Add(new ColumnDefinition {Width=new GridLength(18)});layout.ColumnDefinitions.Add(new ColumnDefinition());Grid.SetRow(layout,0);
         var calendar=new DockPanel();
@@ -67,8 +75,8 @@ public sealed class TiboPanel : UserControl
             if(records.Length>0){var text=Ui.Text((records.All(e=>e.RawStatus=="confirmed")?"● ":"○ ")+(records.Length==1?records[0].Kind:records.Length+" 条动态"),10,records.All(e=>e.RawStatus=="confirmed")?Ui.Mint:Ui.Muted);text.TextWrapping=TextWrapping.NoWrap;text.TextTrimming=TextTrimming.CharacterEllipsis;row.Children.Add(text);}
             var button=new Button {Content=row,HorizontalContentAlignment=HorizontalAlignment.Stretch,VerticalContentAlignment=VerticalAlignment.Top,Padding=new Thickness(10,5,10,5),Margin=new Thickness(3),BorderThickness=new Thickness(1),BorderBrush=Ui.Brush(selectedDate==date?"#538F82":date==Today?"#34534F":"#1B2834"),Background=Ui.Brush(selectedDate==date?"#193531":date.Month==month.Month?"#14202B":"#101922")};System.Windows.Automation.AutomationProperties.SetName(button,date.ToString("yyyy-MM-dd")+" · "+records.Length+" 条记录");button.Click+=(_,_)=>{selectedDate=date;if(date.Month!=month.Month)month=new(date.Year,date.Month,1);Paint();};Grid.SetColumn(button,i%7);Grid.SetRow(button,i/7+1);cells.Children.Add(button);
         }
-        calendar.Children.Add(cells);var calendarCard=Ui.Card(calendar,"#111B25",18);calendarCard.VerticalAlignment=VerticalAlignment.Top;calendarCard.Height=weeks*64+132;layout.Children.Add(calendarCard);
-        var detailPanel=new DockPanel();var dayHeading=Ui.Text(selectedDate.Value.ToString("M 月 d 日")+" · 记录",20);dayHeading.Height=32;dayHeading.Margin=new Thickness(0,0,0,14);DockPanel.SetDock(dayHeading,Dock.Top);detailPanel.Children.Add(dayHeading);var detailScroll=new ScrollViewer {Content=details,VerticalScrollBarVisibility=ScrollBarVisibility.Auto,HorizontalScrollBarVisibility=ScrollBarVisibility.Disabled};detailPanel.Children.Add(detailScroll);var detailCard=Ui.Card(detailPanel,"#111B25",18);detailCard.VerticalAlignment=VerticalAlignment.Top;detailCard.Height=weeks*64+132;Grid.SetColumn(detailCard,2);layout.Children.Add(detailCard);content.Children.Add(layout);
+        calendar.Children.Add(cells);var calendarCard=Ui.Card(calendar,"#111B25",18);calendarCard.VerticalAlignment=VerticalAlignment.Top;calendarCard.Height=weeks*64+132;calendarFrame=calendarCard;preferredHeight=weeks*64+132;layout.Children.Add(calendarCard);
+        var detailPanel=new DockPanel();var dayHeading=Ui.Text(selectedDate.Value.ToString("M 月 d 日")+" · 记录",20);dayHeading.Height=32;dayHeading.Margin=new Thickness(0,0,0,14);DockPanel.SetDock(dayHeading,Dock.Top);detailPanel.Children.Add(dayHeading);var detailScroll=new ScrollViewer {Content=details,VerticalScrollBarVisibility=ScrollBarVisibility.Auto,HorizontalScrollBarVisibility=ScrollBarVisibility.Disabled};detailPanel.Children.Add(detailScroll);var detailCard=Ui.Card(detailPanel,"#111B25",18);detailCard.VerticalAlignment=VerticalAlignment.Top;detailCard.Height=weeks*64+132;detailFrame=detailCard;FitPanels();Grid.SetColumn(detailCard,2);layout.Children.Add(detailCard);content.Children.Add(layout);
         details.Children.Clear();
         var dayEvents=data.Events.Where(e=>e.CalendarDate==selectedDate).ToArray();if(dayEvents.Length==0){var empty=new StackPanel();empty.Children.Add(Ui.Text("当天暂无记录",18));var hint=Ui.Text("带有状态标记的日期可以查看重置和发卡动态。",13,Ui.Muted);hint.Margin=new Thickness(0,10,0,0);empty.Children.Add(hint);details.Children.Add(Ui.Card(empty,"#121C27",24));}foreach(var e in dayEvents)ShowDetail(e);
     }
@@ -95,7 +103,7 @@ public sealed class TiboPanel : UserControl
     async Task Refresh()
     {
         if(busy||closed)return;
-        if(DateTimeOffset.UtcNow<retryAt){status.Text="服务暂时限流，请稍后重试。";return;}
+        if(DateTimeOffset.UtcNow<retryAt){status.Visibility=Visibility.Visible;status.Text="服务暂时限流，请稍后重试。";return;}
         busy=true;refresh.IsEnabled=false;status.Text="正在核对监控状态…";
         try
         {

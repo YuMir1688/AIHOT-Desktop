@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Globalization;
 using System.IO;
 using System.Windows;
@@ -129,6 +129,7 @@ internal static class SharePoster
 }
 internal sealed class ShareWindow : Window
 {
+    private static readonly System.Collections.Generic.Dictionary<int,BitmapSource> thumbnailCache = new();
     internal ShareWindow(NewsItem item)
     {
         Title = "分享海报"; Width = 1080; Height = 860; MinWidth = 780; MinHeight = 560; WindowStartupLocation = WindowStartupLocation.CenterOwner;
@@ -136,36 +137,37 @@ internal sealed class ShareWindow : Window
         var preview = new Image { Stretch = Stretch.Uniform, MaxWidth = 350, HorizontalAlignment = HorizontalAlignment.Center }; var previewPanel = new DockPanel(); var previewLabel = Ui.Text("窄版海报预览 · 700px", 11, Ui.Muted); previewLabel.Margin = new Thickness(0, 0, 0, 12); DockPanel.SetDock(previewLabel, Dock.Top); previewPanel.Children.Add(previewLabel); previewPanel.Children.Add(preview); var previewCard = Ui.Card(previewPanel, "#151E2A", 14); previewCard.Margin = new Thickness(0, 0, 16, 0); root.Children.Add(previewCard);
         previewLabel.Text = "海报预览 · 3:4 · 720 × 960";
         var controls = new StackPanel { Margin = new Thickness(0, 0, 6, 0) }; var controlScroll = new ScrollViewer { Content = controls, VerticalScrollBarVisibility = ScrollBarVisibility.Auto, HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled }; Grid.SetColumn(controlScroll, 1); root.Children.Add(controlScroll);
-        var intro = Ui.Text("编辑内容，生成一张值得分享的资讯卡。", 11, Ui.Muted); intro.Margin = new Thickness(0, 3, 0, 16); controls.Children.Add(intro);
-        var edit = new StackPanel(); var editCard = Ui.Card(edit, "#151E2A", 16); controls.Children.Add(editCard);
-        var titleCount = Ui.Text("", 10, Ui.Muted); var summaryCount = Ui.Text("", 10, Ui.Muted);
+        var intro = Ui.Text("编辑内容，生成一张值得分享的资讯卡。", 11, Ui.Muted); intro.Margin = new Thickness(0, 0, 0, 10); controls.Children.Add(intro);
+        var edit = new StackPanel(); var editCard = Ui.Card(edit, "#151E2A", 14); controls.Children.Add(editCard);
+        var titleCount = Ui.Text("", 11, Ui.Muted); var summaryCount = Ui.Text("", 11, Ui.Muted);
         void Caption(string label, TextBlock count) { var row = new DockPanel { Margin = new Thickness(0, 0, 0, 8) }; count.HorizontalAlignment = HorizontalAlignment.Right; DockPanel.SetDock(count, Dock.Right); row.Children.Add(count); row.Children.Add(Ui.Text(label, 12)); edit.Children.Add(row); }
         Caption("标题", titleCount);
-        var title = new TextBox { Text = item.Title, FontSize = 13, Padding = new Thickness(12, 10, 12, 10), TextWrapping = TextWrapping.Wrap, AcceptsReturn = true, Height = 64, VerticalScrollBarVisibility = ScrollBarVisibility.Auto, Margin = new Thickness(0, 0, 0, 16) }; TextBlock.SetLineHeight(title, 21); edit.Children.Add(title);
+        var title = new TextBox { Text = item.Title, FontSize = 14, Padding = new Thickness(12, 10, 12, 10), TextWrapping = TextWrapping.Wrap, AcceptsReturn = true, Height = 64, VerticalScrollBarVisibility = ScrollBarVisibility.Auto, Margin = new Thickness(0, 0, 0, 12) }; TextBlock.SetLineHeight(title, 22); edit.Children.Add(title);
         Caption("摘要", summaryCount);
-        var summary = new TextBox { Text = SharePoster.SuggestedLead(item.Summary), FontSize = 12, Padding = new Thickness(12, 10, 12, 10), TextWrapping = TextWrapping.Wrap, AcceptsReturn = true, Height = 120, VerticalScrollBarVisibility = ScrollBarVisibility.Auto }; TextBlock.SetLineHeight(summary, 21); edit.Children.Add(summary);
-        var editHint = Ui.Text("导读建议 180 字以内；不修改原资讯。", 10, Ui.Muted); editHint.Margin = new Thickness(0, 8, 0, 0); edit.Children.Add(editHint);
+        var summary = new TextBox { Text = SharePoster.SuggestedLead(item.Summary), FontSize = 14, Padding = new Thickness(12, 10, 12, 10), TextWrapping = TextWrapping.Wrap, AcceptsReturn = true, Height = 104, VerticalScrollBarVisibility = ScrollBarVisibility.Auto }; TextBlock.SetLineHeight(summary, 22); edit.Children.Add(summary);
+        var editHint = Ui.Text("导读建议 180 字以内；不修改原资讯。", 11, Ui.Muted); editHint.Margin = new Thickness(0, 8, 0, 0); edit.Children.Add(editHint);
         void Counts() { titleCount.Text = $"{title.Text.Length} / 220"; summaryCount.Text = $"{summary.Text.Length} / 600"; titleCount.Foreground = title.Text.Length > 220 ? Ui.Brush("#E8A29E") : Ui.Muted; summaryCount.Foreground = summary.Text.Length > 600 ? Ui.Brush("#E8A29E") : Ui.Muted; } Counts();
         int selectedStyle = 0; BitmapSource? poster = null;
-        var styleCaption = Ui.Text("选择版式 · 固定 3:4 · 720 × 960", 12); styleCaption.Margin = new Thickness(0, 16, 0, 8); controls.Children.Add(styleCaption);
+        var previewCache = new System.Collections.Generic.Dictionary<int,BitmapSource>();
+        var styleCaption = Ui.Text("选择版式 · 固定 3:4 · 720 × 960", 12); styleCaption.Margin = new Thickness(0, 12, 0, 8); controls.Children.Add(styleCaption);
         var styles = new System.Windows.Controls.Primitives.UniformGrid { Columns = 5 }; var styleButtons = new System.Collections.Generic.List<Button>(); controls.Children.Add(styles);
         void PaintStyle() { for (int i = 0; i < styleButtons.Count; i++) { styleButtons[i].Background = Ui.Brush(i == selectedStyle ? "#23493F" : "#202A38"); styleButtons[i].BorderBrush = i == selectedStyle ? Ui.Mint : Ui.Line; } }
 
         var exports = new Grid(); exports.ColumnDefinitions.Add(new ColumnDefinition()); exports.ColumnDefinitions.Add(new ColumnDefinition());
         var copy = new Button { Content = "复制图片", Height = 42, IsEnabled = false, Margin = new Thickness(0, 0, 8, 0) }; var save = new Button { Content = "保存 PNG", Height = 42, IsEnabled = false, Background = Ui.Mint, Foreground = Ui.Brush("#103B2E"), FontWeight = FontWeights.SemiBold }; Grid.SetColumn(save, 1); exports.Children.Add(copy); exports.Children.Add(save); controls.Children.Add(exports);
         var status = Ui.Text("", 11, Ui.Muted); status.Margin = new Thickness(0, 12, 0, 0); controls.Children.Add(status);
-        void Generate() { try { poster = SharePoster.Render(item, title.Text, summary.Text, selectedStyle); preview.Source = poster; previewLabel.Text = "海报预览 · 3:4 · 720 × 960"; copy.IsEnabled = save.IsEnabled = true; status.Text = $"{SharePoster.Names[selectedStyle]} · {poster.PixelWidth} × {poster.PixelHeight}" + (title.Text.Length > 65 ? "\n标题较长，建议精简，保留主体与关键限定。" : "") + (summary.Text.Length > 180 ? "\n导读较长，建议人工精简后分享。" : ""); } catch (Exception e) { poster = null; preview.Source = null; copy.IsEnabled = save.IsEnabled = false; status.Text = e.Message; previewLabel.Text = "暂时无法生成预览\n" + e.Message; } }
+        void Generate() { try { if (!previewCache.TryGetValue(selectedStyle, out poster)) { poster = SharePoster.Render(item, title.Text, summary.Text, selectedStyle); previewCache[selectedStyle] = poster; } preview.Source = poster; previewLabel.Text = "海报预览 · 3:4 · 720 × 960"; copy.IsEnabled = save.IsEnabled = true; status.Text = $"{SharePoster.Names[selectedStyle]} · {poster.PixelWidth} × {poster.PixelHeight}" + (title.Text.Length > 65 ? "\n标题较长，建议精简，保留主体与关键限定。" : "") + (summary.Text.Length > 180 ? "\n导读较长，建议人工精简后分享。" : ""); } catch (Exception e) { poster = null; preview.Source = null; copy.IsEnabled = save.IsEnabled = false; status.Text = e.Message; previewLabel.Text = "暂时无法生成预览\n" + e.Message; } }
         var previewDelay=new System.Windows.Threading.DispatcherTimer {Interval=TimeSpan.FromMilliseconds(300)};
         previewDelay.Tick+=(_,_)=>{previewDelay.Stop();Generate();};
         Closed+=(_,_)=>previewDelay.Stop();
-        void Dirty() { Counts(); copy.IsEnabled = save.IsEnabled = false; status.Text = "正在更新预览…";previewDelay.Stop();previewDelay.Start(); }
+        void Dirty() { previewCache.Clear(); Counts(); copy.IsEnabled = save.IsEnabled = false; status.Text = "正在更新预览…";previewDelay.Stop();previewDelay.Start(); }
         title.TextChanged += (_, _) => Dirty(); summary.TextChanged += (_, _) => Dirty();
         for (int i = 0; i < SharePoster.Names.Length; i++) {
             int choice = i; var tile = new StackPanel();
-            try { tile.Children.Add(new Image { Source = SharePoster.Render(item, "值得分享的 AI 动态", "资讯摘要与原文入口", i), Width = 36, Height = 48, Stretch = Stretch.Uniform }); } catch { }
-            var label = Ui.Text(SharePoster.Names[i], 9); label.HorizontalAlignment = HorizontalAlignment.Center; label.Margin = new Thickness(0, 5, 0, 0); tile.Children.Add(label);
+            try { if (!thumbnailCache.TryGetValue(i, out var thumbnail)) { var full = SharePoster.Render(item, "值得分享的 AI 动态", "资讯摘要与原文入口", i); var visual = new DrawingVisual(); using (var dc = visual.RenderOpen()) dc.DrawImage(full, new Rect(0,0,72,96)); var small = new RenderTargetBitmap(72,96,96,96,PixelFormats.Pbgra32); small.Render(visual); small.Freeze(); thumbnail = small; thumbnailCache[i] = thumbnail; } tile.Children.Add(new Image { Source = thumbnail, Width = 36, Height = 48, Stretch = Stretch.Uniform }); } catch { }
+            var label = Ui.Text(SharePoster.Names[i], 10); label.HorizontalAlignment = HorizontalAlignment.Center; label.Margin = new Thickness(0, 5, 0, 0); tile.Children.Add(label);
             var button = new Button { Content = tile, Padding = new Thickness(3, 7, 3, 7), BorderThickness = new Thickness(1), Margin = new Thickness(0, 0, 3, 6), ToolTip = SharePoster.Names[i] };
-            button.Click += (_, _) => { selectedStyle = choice; previewDelay.Stop(); PaintStyle(); Generate(); }; styleButtons.Add(button); styles.Children.Add(button);
+            button.Click += (_, _) => { if(selectedStyle == choice && poster != null && !previewDelay.IsEnabled)return; selectedStyle = choice; previewDelay.Stop(); PaintStyle(); Generate(); }; styleButtons.Add(button); styles.Children.Add(button);
         } PaintStyle();
         copy.Click += (_, _) => { try { if (poster != null) { Clipboard.SetImage(poster); status.Text = "图片已复制，可粘贴分享。"; } } catch { status.Text = "剪贴板暂时被占用，请重试或保存 PNG。"; } };
         save.Click += (_, _) => { var dialog = new Microsoft.Win32.SaveFileDialog { Filter = "PNG 图片|*.png", FileName = "YuMir-AIHOT-" + DateTime.Now.ToString("yyyyMMdd-HHmmss") + ".png", DefaultExt = ".png" }; if (dialog.ShowDialog(Ui.OwnerFor(this)) == true && poster != null) { try { SharePoster.Save(poster, dialog.FileName); status.Text = "已保存：" + dialog.FileName; } catch (Exception e) { status.Text = "保存失败：" + e.Message; } } };

@@ -1,4 +1,4 @@
-﻿using System.Reflection;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Controls;
@@ -330,13 +330,14 @@ public sealed class ReportShareWindow : Window
     private void SetMode(bool value)
     {
         if (exporting != null) return;
+        if (isLong == value && document != null) return;
         isLong = value;
         longPreview.Visibility = value ? Visibility.Visible : Visibility.Collapsed;
         preview.Visibility = navigation.Visibility = cardActions.Visibility = export.Visibility = value ? Visibility.Collapsed : Visibility.Visible;
         saveLong.Visibility = value ? Visibility.Visible : Visibility.Collapsed;
         longMode.Background = ReportSharing.Brush(value ? "#23493F" : "#202A38");
         cardsMode.Background = ReportSharing.Brush(value ? "#202A38" : "#23493F");
-        Generate();
+        if(document == null) Generate(); else { ShowPage(); if(document != null) status.Text = isLong ? $"共 {document.Selected.Count} 条 · 向下滚动查看完整长图" : $"封面 1 张 + 资讯 {document.Pages.Count - 1} 张 · 1080 × 1440"; }
     }
     private sealed class PreviewWidth : IValueConverter
     {

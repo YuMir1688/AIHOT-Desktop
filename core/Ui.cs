@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -29,7 +29,7 @@ internal static class Ui
     internal static readonly Brush Ink = Brush("#EBF1F6"), Muted = Brush("#8495A9"), Mint = Brush("#73E5C1"), Line = Brush("#283443");
     internal static TextBlock Text(string text, double size = 12, Brush? color = null) => new() { Text = text, FontSize = size, Foreground = color ?? Ink, TextWrapping = TextWrapping.Wrap, FontWeight = size >= 18 ? FontWeights.SemiBold : FontWeights.Normal, LineHeight = size * (size >= 18 ? 1.4 : 1.65) };
     internal static Border Card(UIElement child, string background = "#151E2A", double padding = 20) => new() { Child = child, Background = Brush(background), BorderBrush = Line, BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(12), Padding = new Thickness(padding) };
-    internal static Border Badge(string text) => new() { Child = Text(text, 10, Mint), Background = Brush("#1A3031"), CornerRadius = new CornerRadius(6), Padding = new Thickness(9, 3, 9, 3), HorizontalAlignment = HorizontalAlignment.Left };
+    internal static Border Badge(string text) => new() { Child = Text(text, 11, Mint), Background = Brush("#1A3031"), CornerRadius = new CornerRadius(6), Padding = new Thickness(9, 3, 9, 3), HorizontalAlignment = HorizontalAlignment.Left };
     private static readonly DependencyProperty PageBodyProperty = DependencyProperty.RegisterAttached("PageBody",typeof(UIElement),typeof(Ui));
     internal static UIElement DetachPageBody(Window page)
     {
