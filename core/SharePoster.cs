@@ -151,26 +151,29 @@ internal sealed class ShareWindow : Window
         var styleCaption = Ui.Text("选择版式 · 固定 3:4 · 720 × 960", 12); styleCaption.Margin = new Thickness(0, 16, 0, 8); controls.Children.Add(styleCaption);
         var styles = new System.Windows.Controls.Primitives.UniformGrid { Columns = 5 }; var styleButtons = new System.Collections.Generic.List<Button>(); controls.Children.Add(styles);
         void PaintStyle() { for (int i = 0; i < styleButtons.Count; i++) { styleButtons[i].Background = Ui.Brush(i == selectedStyle ? "#23493F" : "#202A38"); styleButtons[i].BorderBrush = i == selectedStyle ? Ui.Mint : Ui.Line; } }
-        var generate = new Button { Content = "更新预览", Height = 36, Background = Brushes.Transparent, BorderThickness = new Thickness(1), BorderBrush = Ui.Line, Margin = new Thickness(0, 12, 0, 12) }; controls.Children.Add(generate);
+
         var exports = new Grid(); exports.ColumnDefinitions.Add(new ColumnDefinition()); exports.ColumnDefinitions.Add(new ColumnDefinition());
         var copy = new Button { Content = "复制图片", Height = 42, IsEnabled = false, Margin = new Thickness(0, 0, 8, 0) }; var save = new Button { Content = "保存 PNG", Height = 42, IsEnabled = false, Background = Ui.Mint, Foreground = Ui.Brush("#103B2E"), FontWeight = FontWeights.SemiBold }; Grid.SetColumn(save, 1); exports.Children.Add(copy); exports.Children.Add(save); controls.Children.Add(exports);
         var status = Ui.Text("", 11, Ui.Muted); status.Margin = new Thickness(0, 12, 0, 0); controls.Children.Add(status);
         void Generate() { try { poster = SharePoster.Render(item, title.Text, summary.Text, selectedStyle); preview.Source = poster; previewLabel.Text = "海报预览 · 3:4 · 720 × 960"; copy.IsEnabled = save.IsEnabled = true; status.Text = $"{SharePoster.Names[selectedStyle]} · {poster.PixelWidth} × {poster.PixelHeight}" + (title.Text.Length > 65 ? "\n标题较长，建议精简，保留主体与关键限定。" : "") + (summary.Text.Length > 180 ? "\n导读较长，建议人工精简后分享。" : ""); } catch (Exception e) { poster = null; preview.Source = null; copy.IsEnabled = save.IsEnabled = false; status.Text = e.Message; previewLabel.Text = "暂时无法生成预览\n" + e.Message; } }
-        void Dirty() { Counts(); copy.IsEnabled = save.IsEnabled = false; status.Text = "内容已修改，请更新预览后保存。"; }
+        var previewDelay=new System.Windows.Threading.DispatcherTimer {Interval=TimeSpan.FromMilliseconds(300)};
+        previewDelay.Tick+=(_,_)=>{previewDelay.Stop();Generate();};
+        Closed+=(_,_)=>previewDelay.Stop();
+        void Dirty() { Counts(); copy.IsEnabled = save.IsEnabled = false; status.Text = "正在更新预览…";previewDelay.Stop();previewDelay.Start(); }
         title.TextChanged += (_, _) => Dirty(); summary.TextChanged += (_, _) => Dirty();
         for (int i = 0; i < SharePoster.Names.Length; i++) {
             int choice = i; var tile = new StackPanel();
             try { tile.Children.Add(new Image { Source = SharePoster.Render(item, "值得分享的 AI 动态", "资讯摘要与原文入口", i), Width = 36, Height = 48, Stretch = Stretch.Uniform }); } catch { }
             var label = Ui.Text(SharePoster.Names[i], 9); label.HorizontalAlignment = HorizontalAlignment.Center; label.Margin = new Thickness(0, 5, 0, 0); tile.Children.Add(label);
             var button = new Button { Content = tile, Padding = new Thickness(3, 7, 3, 7), BorderThickness = new Thickness(1), Margin = new Thickness(0, 0, 3, 0), ToolTip = SharePoster.Names[i] };
-            button.Click += (_, _) => { selectedStyle = choice; PaintStyle(); Generate(); }; styleButtons.Add(button); styles.Children.Add(button);
-        } PaintStyle(); generate.Click += (_, _) => Generate();
+            button.Click += (_, _) => { selectedStyle = choice; previewDelay.Stop(); PaintStyle(); Generate(); }; styleButtons.Add(button); styles.Children.Add(button);
+        } PaintStyle();
         copy.Click += (_, _) => { try { if (poster != null) { Clipboard.SetImage(poster); status.Text = "图片已复制，可粘贴分享。"; } } catch { status.Text = "剪贴板暂时被占用，请重试或保存 PNG。"; } };
         save.Click += (_, _) => { var dialog = new Microsoft.Win32.SaveFileDialog { Filter = "PNG 图片|*.png", FileName = "YuMir-AIHOT-" + DateTime.Now.ToString("yyyyMMdd-HHmmss") + ".png", DefaultExt = ".png" }; if (dialog.ShowDialog(Ui.OwnerFor(this)) == true && poster != null) { try { SharePoster.Save(poster, dialog.FileName); status.Text = "已保存：" + dialog.FileName; } catch (Exception e) { status.Text = "保存失败：" + e.Message; } } };
         // Keep export actions visible while the editing options scroll independently.
-        controls.Children.Remove(generate); controls.Children.Remove(exports); controls.Children.Remove(status);
+        controls.Children.Remove(exports); controls.Children.Remove(status);
         root.Children.Remove(controlScroll);
-        var right=new DockPanel();var footer=new StackPanel();footer.Children.Add(generate);footer.Children.Add(exports);status.MaxHeight=36;status.TextTrimming=TextTrimming.CharacterEllipsis;footer.Children.Add(status);
+        var right=new DockPanel();var footer=new StackPanel();footer.Margin=new Thickness(0,12,0,0);footer.Children.Add(exports);status.MaxHeight=36;status.TextTrimming=TextTrimming.CharacterEllipsis;footer.Children.Add(status);
         DockPanel.SetDock(footer,Dock.Bottom);right.Children.Add(footer);right.Children.Add(controlScroll);Grid.SetColumn(right,1);root.Children.Add(right);
         Ui.Shell(this, "分享海报", root); Generate();
     }

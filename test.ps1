@@ -14,5 +14,8 @@ if($LASTEXITCODE -ne 0){throw 'Share rendering integration failed'}
 & $Dotnet tools/bin/Release/net10.0-windows/CardTools.dll tibo-test artifacts/tibo-preview.png
 if($LASTEXITCODE -ne 0){throw 'Tibo monitor tests failed'}
 
+& $Dotnet tools/bin/Release/net10.0-windows/CardTools.dll test-host artifacts/app/AIHOT.Desktop.dll artifacts/preview-test-host.dll
+if($LASTEXITCODE -ne 0){throw "Preview test host creation failed"}
+Copy-Item artifacts/preview-test-host.dll tools/bin/Release/net10.0-windows/AIHOT.Desktop.dll -Force
 & $Dotnet tools/bin/Release/net10.0-windows/CardTools.dll embedded-share-test artifacts/embedded-share-preview.png
 if($LASTEXITCODE -ne 0){throw "Embedded sharing navigation tests failed"}

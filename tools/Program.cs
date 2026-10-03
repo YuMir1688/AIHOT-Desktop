@@ -75,6 +75,12 @@ static class Program
             Require(host.Visibility==System.Windows.Visibility.Visible&&!share.IsVisible,"Share embedded without showing its controller window");
             Require(ReferenceEquals(System.Windows.Window.GetWindow(host.Child),reader),"Share body belongs to reader");
             typeof(ReportTests).GetMethod("Capture",System.Reflection.BindingFlags.Static|System.Reflection.BindingFlags.NonPublic)!.Invoke(null,new object[]{reader,args[1]});
+            var saveButton=Walk(host.Child).OfType<System.Windows.Controls.Button>().Single(b=>b.Content as string=="保存 PNG");
+            var titleBox=Walk(host.Child).OfType<System.Windows.Controls.TextBox>().First();titleBox.Text="自动预览验证";
+            Require(!saveButton.IsEnabled,"Saving stale preview disabled during edit");
+            var frame=new System.Windows.Threading.DispatcherFrame();var delay=new System.Windows.Threading.DispatcherTimer {Interval=TimeSpan.FromMilliseconds(600)};delay.Tick+=(_,_)=>{delay.Stop();frame.Continue=false;};delay.Start();System.Windows.Threading.Dispatcher.PushFrame(frame);
+            Require(saveButton.IsEnabled,"Preview refreshes automatically after editing");
+            Require(!Walk(host.Child).OfType<System.Windows.Controls.Button>().Any(b=>b.Content as string=="更新预览"),"Manual update button removed");
             share.Close();Require(host.Visibility==System.Windows.Visibility.Collapsed,"Share returns to reading");
             var report=new ReportShareWindow(new ReportSnapshot(2,DateTime.Today,DateTime.Today.AddDays(7),DateTimeOffset.Now,new[]{shareItem}));Embed(report,"分享周报");var reportView=host.Child;
             var adjust=Walk(host.Child).OfType<System.Windows.Controls.Button>().Single(b=>b.Content as string=="调整分享资讯");adjust.RaiseEvent(new System.Windows.RoutedEventArgs(System.Windows.Controls.Button.ClickEvent));
@@ -382,4 +388,5 @@ static class Program
         Console.WriteLine("PASS 今日精选 TOP label; TOP100 removed");
     }
 }
+
 
