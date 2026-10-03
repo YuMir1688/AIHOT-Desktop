@@ -18,10 +18,11 @@ public sealed class TiboWindow : Window
     public sealed class Saved { public string Json {get;set;}=""; public string ETag {get;set;}=""; }
     readonly Grid content = new();
     readonly TextBlock status = Ui.Text("",11,Ui.Muted);
-    readonly Button refresh = new() { Content="刷新", MinWidth=72 };
+    readonly Button refresh = new() { Content="刷新", MinWidth=72, Height=36, FontSize=12 };
     readonly DispatcherTimer timer = new() { Interval=TimeSpan.FromMinutes(10) };
     readonly CancellationTokenSource cancellation = new();
-    DateTime month = new(DateTime.Now.Year,DateTime.Now.Month,1);
+    static DateTime Today => DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(8)).Date;
+    DateTime month = new(Today.Year,Today.Month,1);
     DateTime? selectedDate;
     readonly StackPanel details = new();
     Saved saved = new(); TiboData? data; bool busy, closed; DateTimeOffset retryAt;
@@ -33,9 +34,9 @@ public sealed class TiboWindow : Window
     public TiboWindow(string? sampleJson=null, bool online=true)
     {
         Title="AIHOT · Tibo 重置监控";Width=1200;Height=750;MinWidth=800;MinHeight=500;WindowStartupLocation=WindowStartupLocation.CenterScreen;
-        var root=new DockPanel {Margin=new Thickness(28,20,28,24)};
+        var root=new DockPanel {Margin=new Thickness(24,20,24,18)};
         var top=new DockPanel {Margin=new Thickness(0,0,0,18)};
-        var actions=new StackPanel {Orientation=Orientation.Horizontal};actions.Children.Add(refresh);DockPanel.SetDock(actions,Dock.Right);top.Children.Add(actions);top.Children.Add(Ui.Text("Tibo 重置监控",24));DockPanel.SetDock(top,Dock.Top);root.Children.Add(top);
+        var actions=new StackPanel {Orientation=Orientation.Horizontal};actions.Children.Add(refresh);DockPanel.SetDock(actions,Dock.Right);top.Children.Add(actions);top.Children.Add(Ui.Text("重置日历",22));DockPanel.SetDock(top,Dock.Top);root.Children.Add(top);
         status.Margin=new Thickness(0,12,0,0);DockPanel.SetDock(status,Dock.Bottom);root.Children.Add(status);
         root.Children.Add(content);Ui.Shell(this,"Tibo 重置监控",root);
         try { saved=sampleJson==null?Storage.Read<Saved>("tibo-calendar-cache.json"):new Saved{Json=sampleJson};if(saved.Json.Length>0)data=TiboData.Parse(saved.Json); } catch { saved=new(); }
@@ -57,12 +58,12 @@ public sealed class TiboWindow : Window
         for(int i=0;i<3;i++)summary.ColumnDefinitions.Add(new ColumnDefinition());
         void Metric(int column,string label,string value,string hint)
         {
-            var box=new StackPanel();box.Children.Add(Ui.Text(label,12,Ui.Muted));box.Children.Add(Ui.Text(value,21,Ui.Mint));box.Children.Add(Ui.Text(hint,11,Ui.Muted));
-            var card=Ui.Card(box,padding:16);card.Margin=new Thickness(column==0?0:6,0,column==2?0:6,0);Grid.SetColumn(card,column);summary.Children.Add(card);
+            var box=new StackPanel();box.Children.Add(Ui.Text(label,12,Ui.Muted));var metric=Ui.Text(value,20,Ui.Ink);metric.Margin=new Thickness(0,4,0,4);box.Children.Add(metric);box.Children.Add(Ui.Text(hint,11,Ui.Muted));
+            var card=Ui.Card(box,"#121C27",16);card.BorderThickness=new Thickness(0);card.Margin=new Thickness(column==0?0:6,0,column==2?0:6,0);Grid.SetColumn(card,column);summary.Children.Add(card);
         }
         int pending=data.Events.Count(e=>e.RawStatus!="confirmed");
         var latest=data.Events.Where(e=>e.RawStatus=="confirmed" && e.Confirmed.Length>0).OrderByDescending(e=>e.Confirmed).FirstOrDefault();
-        Metric(0,"重置记录状态",pending==0?"暂无待确认":$"{pending} 条待确认","已收录记录中的待确认项");
+        Metric(0,"历史待确认",pending==0?"暂无待确认":$"{pending} 条待确认","包含尚未补充确认的历史预告");
         Metric(1,"最近确认帖",latest==null?"尚未提供":TiboData.Time(latest.Confirmed),"确认发布时间，非精确到账时间");
         Metric(2,"来源监控",data.Health=="healthy"?"运行正常":"状态待核实","个人额度以账户内显示为准");
         content.Children.Add(summary);
@@ -70,28 +71,29 @@ public sealed class TiboWindow : Window
         var calendar=new DockPanel();
         var navigation=new DockPanel {Margin=new Thickness(0,0,0,14)};
         var controls=new StackPanel {Orientation=Orientation.Horizontal};
-        void Navigate(string label,Action action){var button=new Button {Content=label,Padding=new Thickness(10,6,10,6),Margin=new Thickness(6,0,0,0)};button.Click+=(_,_)=>{action();Paint();};controls.Children.Add(button);}
-        Navigate("‹",()=>month=month.AddMonths(-1));Navigate("本月",()=>{var now=DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(8)).Date;month=new(now.Year,now.Month,1);selectedDate=now;});Navigate("›",()=>month=month.AddMonths(1));DockPanel.SetDock(controls,Dock.Right);navigation.Children.Add(controls);navigation.Children.Add(Ui.Text(month.ToString("yyyy 年 M 月"),20));DockPanel.SetDock(navigation,Dock.Top);calendar.Children.Add(navigation);
-        var legend=Ui.Text("● 已确认   ○ 待确认 · 日期以发生日 / 确认帖日 / 预计日标注",11,Ui.Muted);legend.Margin=new Thickness(0,10,0,0);DockPanel.SetDock(legend,Dock.Bottom);calendar.Children.Add(legend);
-        var cells=new Grid();for(int i=0;i<7;i++)cells.ColumnDefinitions.Add(new ColumnDefinition());cells.RowDefinitions.Add(new RowDefinition {Height=new GridLength(28)});for(int i=0;i<6;i++)cells.RowDefinitions.Add(new RowDefinition());
-        var weekdays=new[]{"一","二","三","四","五","六","日"};for(int i=0;i<7;i++){var day=Ui.Text(weekdays[i],12,Ui.Muted);day.HorizontalAlignment=HorizontalAlignment.Center;Grid.SetColumn(day,i);cells.Children.Add(day);}
+        void Navigate(string label,Action action){var button=new Button {Content=label,Height=32,MinWidth=32,Padding=new Thickness(10,4,10,4),Margin=new Thickness(6,0,0,0)};button.Click+=(_,_)=>{action();Paint();};controls.Children.Add(button);}
+        Navigate("‹",()=>{month=month.AddMonths(-1);selectedDate=null;});Navigate("本月",()=>{var now=DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(8)).Date;month=new(now.Year,now.Month,1);selectedDate=now;});Navigate("›",()=>{month=month.AddMonths(1);selectedDate=null;});DockPanel.SetDock(controls,Dock.Right);navigation.Children.Add(controls);navigation.Children.Add(Ui.Text(month.ToString("yyyy 年 M 月"),20));DockPanel.SetDock(navigation,Dock.Top);calendar.Children.Add(navigation);
+        var legend=Ui.Text("● 已确认   ○ 待确认 · 具体日期含义见右侧详情",11,Ui.Muted);legend.Margin=new Thickness(0,10,0,0);DockPanel.SetDock(legend,Dock.Bottom);calendar.Children.Add(legend);
         var start=month.AddDays(-((int)month.DayOfWeek+6)%7);
+        int weeks=(int)Math.Ceiling(((month-start).Days+DateTime.DaysInMonth(month.Year,month.Month))/7.0);
+        var cells=new Grid();for(int i=0;i<7;i++)cells.ColumnDefinitions.Add(new ColumnDefinition());cells.RowDefinitions.Add(new RowDefinition {Height=new GridLength(28)});for(int i=0;i<weeks;i++)cells.RowDefinitions.Add(new RowDefinition());
+        var weekdays=new[]{"一","二","三","四","五","六","日"};for(int i=0;i<7;i++){var day=Ui.Text(weekdays[i],12,Ui.Muted);day.HorizontalAlignment=HorizontalAlignment.Center;Grid.SetColumn(day,i);cells.Children.Add(day);}
         selectedDate??=data.Events.FirstOrDefault(e=>e.CalendarDate?.Year==month.Year && e.CalendarDate?.Month==month.Month)?.CalendarDate??month;
-        for(int i=0;i<42;i++)
+        for(int i=0;i<weeks*7;i++)
         {
-            var date=start.AddDays(i);var records=data.Events.Where(e=>e.CalendarDate==date).ToArray();var row=new StackPanel();var number=Ui.Text(date.Day.ToString(),14,date.Month==month.Month?Ui.Ink:Ui.Muted);row.Children.Add(number);
-            if(records.Length>0){var text=Ui.Text((records.All(e=>e.RawStatus=="confirmed")?"● ":"○ ")+(records.Length==1?records[0].Kind:records.Length+" 条记录"),10,records.All(e=>e.RawStatus=="confirmed")?Ui.Mint:Ui.Muted);text.TextWrapping=TextWrapping.NoWrap;text.TextTrimming=TextTrimming.CharacterEllipsis;row.Children.Add(text);}
-            var button=new Button {Content=row,HorizontalContentAlignment=HorizontalAlignment.Stretch,VerticalContentAlignment=VerticalAlignment.Top,Padding=new Thickness(8,5,8,5),Margin=new Thickness(2),Background=Ui.Brush(selectedDate==date?"#1A3938":"#151E2A")};button.Click+=(_,_)=>{selectedDate=date;Paint();};Grid.SetColumn(button,i%7);Grid.SetRow(button,i/7+1);cells.Children.Add(button);
+            var date=start.AddDays(i);var records=data.Events.Where(e=>e.CalendarDate==date).ToArray();var row=new StackPanel();var number=Ui.Text(date.Day.ToString(),14,date.Month==month.Month?Ui.Ink:Ui.Muted);var dayHeader=new DockPanel();if(date==Today){var today=Ui.Text("今天",10,Ui.Mint);today.HorizontalAlignment=HorizontalAlignment.Right;DockPanel.SetDock(today,Dock.Right);dayHeader.Children.Add(today);}dayHeader.Children.Add(number);row.Children.Add(dayHeader);
+            if(records.Length>0){var text=Ui.Text((records.All(e=>e.RawStatus=="confirmed")?"● ":"○ ")+(records.Length==1?records[0].Kind:records.Length+" 条动态"),10,records.All(e=>e.RawStatus=="confirmed")?Ui.Mint:Ui.Muted);text.TextWrapping=TextWrapping.NoWrap;text.TextTrimming=TextTrimming.CharacterEllipsis;row.Children.Add(text);}
+            var button=new Button {Content=row,HorizontalContentAlignment=HorizontalAlignment.Stretch,VerticalContentAlignment=VerticalAlignment.Top,Padding=new Thickness(10,8,10,8),Margin=new Thickness(3),BorderThickness=new Thickness(1),BorderBrush=Ui.Brush(selectedDate==date?"#538F82":date==Today?"#34534F":"#1B2834"),Background=Ui.Brush(selectedDate==date?"#193531":date.Month==month.Month?"#14202B":"#101922")};System.Windows.Automation.AutomationProperties.SetName(button,date.ToString("yyyy-MM-dd")+" · "+records.Length+" 条记录");button.Click+=(_,_)=>{selectedDate=date;if(date.Month!=month.Month)month=new(date.Year,date.Month,1);Paint();};Grid.SetColumn(button,i%7);Grid.SetRow(button,i/7+1);cells.Children.Add(button);
         }
-        calendar.Children.Add(cells);layout.Children.Add(calendar);
+        calendar.Children.Add(cells);var calendarCard=Ui.Card(calendar,"#111B25",18);layout.Children.Add(calendarCard);
         var detailScroll=new ScrollViewer {Content=details,VerticalScrollBarVisibility=ScrollBarVisibility.Auto,HorizontalScrollBarVisibility=ScrollBarVisibility.Disabled};Grid.SetColumn(detailScroll,2);layout.Children.Add(detailScroll);content.Children.Add(layout);
-        details.Children.Clear();var dayHeading=Ui.Text(selectedDate.Value.ToString("M 月 d 日")+" · 记录",18);dayHeading.Margin=new Thickness(0,0,0,12);details.Children.Add(dayHeading);
-        var dayEvents=data.Events.Where(e=>e.CalendarDate==selectedDate).ToArray();if(dayEvents.Length==0)details.Children.Add(Ui.Text("当天没有已收录的重置或发卡记录。",13,Ui.Muted));foreach(var e in dayEvents)ShowDetail(e);
+        details.Children.Clear();var dayHeading=Ui.Text(selectedDate.Value.ToString("M 月 d 日")+" · 记录",18);dayHeading.Margin=new Thickness(0,16,0,16);details.Children.Add(dayHeading);
+        var dayEvents=data.Events.Where(e=>e.CalendarDate==selectedDate).ToArray();if(dayEvents.Length==0){var empty=new StackPanel();empty.Children.Add(Ui.Text("当天暂无记录",18));var hint=Ui.Text("带有状态标记的日期可以查看重置和发卡动态。",13,Ui.Muted);hint.Margin=new Thickness(0,10,0,0);empty.Children.Add(hint);details.Children.Add(Ui.Card(empty,"#121C27",24));}foreach(var e in dayEvents)ShowDetail(e);
     }
     void ShowDetail(TiboEvent e)
     {
         var body=new StackPanel();body.Children.Add(Ui.Badge(e.Kind+" / "+e.Status));
-        var heading=Ui.Text(e.Title,23);heading.Margin=new Thickness(0,12,0,16);body.Children.Add(heading);
+        var heading=Ui.Text(e.Title,20);heading.Margin=new Thickness(0,12,0,18);body.Children.Add(heading);
         body.Children.Add(Ui.Text(e.DateMeaning+"："+e.CalendarDate?.ToString("yyyy-MM-dd"),12,Ui.Muted));
         body.Children.Add(Ui.Text("适用人群："+(e.Audience.Length==0?"尚未明确":e.Audience),14));
         if(e.Confirmed.Length>0)body.Children.Add(Ui.Text("确认帖时间："+TiboData.Time(e.Confirmed),13,Ui.Muted));
@@ -103,7 +105,7 @@ public sealed class TiboWindow : Window
         }
         if(e.Posts.Length>0)
         {
-            var label=Ui.Text("最新进展",14,Ui.Mint);label.Margin=new Thickness(0,24,0,0);body.Children.Add(label);body.Children.Add(Post(e.Posts[0]));
+            var label=Ui.Text("最新进展",14,Ui.Mint);label.Margin=new Thickness(0,18,0,0);body.Children.Add(new Border {Height=1,Background=Ui.Line,Margin=new Thickness(0,18,0,0)});body.Children.Add(label);body.Children.Add(Post(e.Posts[0]));
             if(e.Posts.Length>1){var history=new StackPanel();foreach(var post in e.Posts.Skip(1))history.Children.Add(Post(post));body.Children.Add(new Expander {Foreground=Ui.Muted,Header=$"展开更早的 {e.Posts.Length-1} 条原帖",Content=history,Margin=new Thickness(0,12,0,0)});}
         }
         var card=Ui.Card(body,padding:20);card.Margin=new Thickness(0,0,0,12);details.Children.Add(card);
@@ -130,5 +132,6 @@ public sealed class TiboWindow : Window
         finally {busy=false;if(!closed)refresh.IsEnabled=true;}
     }
 }
+
 
 

@@ -1,4 +1,4 @@
-using System.Reflection;
+﻿using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
@@ -43,7 +43,7 @@ public static class ReaderSidebar
             foreach (var heading in row.Children.OfType<StackPanel>())
             foreach (var title in heading.Children.OfType<TextBlock>().Where(t => t.Text == "你的 AI 信息视野"))
             {
-                title.FontFamily = new FontFamily("Microsoft YaHei");
+                title.FontFamily = new FontFamily("Microsoft YaHei UI");
                 title.FontSize = 18;
                 title.FontWeight = FontWeights.Medium;
                 title.LineHeight = 28;
@@ -99,7 +99,7 @@ public static class ReaderSidebar
             button.Margin = new Thickness(0,0,0,8);
             if (button.Content is not StackPanel content || content.Children.Count < 3) continue;
             if (content.Children[1] is TextBlock title) { title.FontSize = 14; title.LineHeight = 22; title.MaxHeight = 66; title.Margin = new Thickness(0,6,0,6); title.ToolTip = title.Text; }
-            if (content.Children[2] is TextBlock source) { source.MaxHeight = 18; source.ToolTip = source.Text; }
+            if (content.Children[2] is TextBlock source) { source.FontSize = 11; source.MaxHeight = 20; source.ToolTip = source.Text; }
         }
     }
 }

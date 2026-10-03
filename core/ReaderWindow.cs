@@ -100,9 +100,9 @@ public sealed class ReaderWindow : Window
         foreach (var n in filtered)
         {
             var stack = new StackPanel(); var meta = new Grid(); meta.ColumnDefinitions.Add(new ColumnDefinition()); meta.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-            meta.Children.Add(Ui.Text(n.CategoryLabel, 10, Ui.Mint)); var date = Ui.Text((n.PublishedAt ?? n.DiscoveredAt).ToLocalTime().ToString("MM-dd HH:mm"), 9, Ui.Muted); Grid.SetColumn(date, 1); meta.Children.Add(date); stack.Children.Add(meta);
+            meta.Children.Add(Ui.Text(n.CategoryLabel, 11, Ui.Mint)); var date = Ui.Text((n.PublishedAt ?? n.DiscoveredAt).ToLocalTime().ToString("MM-dd HH:mm"), 11, Ui.Muted); Grid.SetColumn(date, 1); meta.Children.Add(date); stack.Children.Add(meta);
             var title = Ui.Text(n.Title, 13); title.FontWeight = FontWeights.Medium; title.LineHeight = 21; title.MaxHeight = 42; title.TextTrimming = TextTrimming.CharacterEllipsis; title.Margin = new Thickness(0, 5, 0, 5); stack.Children.Add(title);
-            var source = Ui.Text(n.Source.Name, 10, Ui.Muted); source.TextWrapping = TextWrapping.NoWrap; source.TextTrimming = TextTrimming.CharacterEllipsis; stack.Children.Add(source);
+            var source = Ui.Text(n.Source.Name, 11, Ui.Muted); source.TextWrapping = TextWrapping.NoWrap; source.TextTrimming = TextTrimming.CharacterEllipsis; stack.Children.Add(source);
             var button = new Button { Content = stack, HorizontalContentAlignment = HorizontalAlignment.Stretch, Padding = new Thickness(12, 10, 12, 10), Margin = new Thickness(0, 0, 8, 6), BorderThickness = new Thickness(1) }; button.Click += (_, _) => Select(n.Id); cards[n.Id] = button; results.Children.Add(button);
         }
         if (filtered.Count == 0) { selected = null; positionLabel.Text = "0 / 0"; articleActions.Children.Clear(); previous.IsEnabled = next.IsEnabled = false; detail.Children.Clear(); detail.Children.Add(Ui.Text("暂时没有匹配的资讯", 24)); detail.Children.Add(Ui.Text("试试其他关键词或分类。", 14, Ui.Muted)); var reset = new Button { Content = "清除筛选", HorizontalAlignment = HorizontalAlignment.Left, Margin = new Thickness(0, 16, 0, 0) }; reset.Click += (_, _) => { category = ""; search.Clear(); searchDelay.Stop(); Filter(); }; detail.Children.Add(reset); }
@@ -116,9 +116,9 @@ public sealed class ReaderWindow : Window
         positionLabel.Text = $"{position + 1} / {visibleItems.Count}";
         foreach (var pair in cards) { pair.Value.Background = Ui.Brush(pair.Key == id ? "#1C3538" : "#151F2C"); pair.Value.BorderBrush = Ui.Brush(pair.Key == id ? "#538F82" : "#263342"); }
         detail.Children.Clear(); detail.Children.Add(Ui.Badge(n.CategoryLabel + "  /  精选"));
-        var title = Ui.Text(n.Title, 24); title.FontWeight = FontWeights.SemiBold; title.LineHeight = 35; title.Margin = new Thickness(0, 14, 0, 12); detail.Children.Add(title);
-        detail.Children.Add(Ui.Text(n.Source.Name + "  ·  " + (n.PublishedAt ?? n.DiscoveredAt).ToLocalTime().ToString("MM-dd HH:mm"), 11, Ui.Muted)); detail.Children.Add(new Border { Height = 1, Background = Ui.Line, Margin = new Thickness(0, 24, 0, 24) }); detail.Children.Add(Ui.Text("内容速览", 12, Ui.Muted));
-        var summary = Ui.Text(string.IsNullOrWhiteSpace(n.Summary) ? "此条暂无摘要，可打开原文阅读。" : n.Summary, 15, Ui.Brush("#C7D2DE")); summary.LineHeight = 29; summary.Margin = new Thickness(0, 12, 0, 24); detail.Children.Add(summary);
+        var title = Ui.Text(n.Title, 22); title.FontWeight = FontWeights.SemiBold; title.LineHeight = 32; title.Margin = new Thickness(0, 14, 0, 12); detail.Children.Add(title);
+        detail.Children.Add(Ui.Text(n.Source.Name + "  ·  " + (n.PublishedAt ?? n.DiscoveredAt).ToLocalTime().ToString("MM-dd HH:mm"), 11, Ui.Muted)); detail.Children.Add(new Border { Height = 1, Background = Ui.Line, Margin = new Thickness(0, 20, 0, 20) }); detail.Children.Add(Ui.Text("内容速览", 12, Ui.Muted));
+        var summary = Ui.Text(string.IsNullOrWhiteSpace(n.Summary) ? "此条暂无摘要，可打开原文阅读。" : n.Summary, 15, Ui.Brush("#C7D2DE")); summary.LineHeight = 27; summary.Margin = new Thickness(0, 12, 0, 24); detail.Children.Add(summary);
         if (!string.IsNullOrWhiteSpace(n.Reason))
         {
             var reason = new StackPanel(); reason.Children.Add(Ui.Text("为什么值得关注", 12, Ui.Mint)); var text = Ui.Text(n.Reason, 13, Ui.Brush("#B6C9C8")); text.Margin = new Thickness(0, 9, 0, 0); reason.Children.Add(text);
