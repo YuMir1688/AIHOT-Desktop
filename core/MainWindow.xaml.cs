@@ -193,6 +193,7 @@ public partial class MainWindow : Window
         menu.Items.Add("显示挂件", null, (_, _) => Dispatcher.Invoke(ShowWidget));
         menu.Items.Add("隐藏挂件", null, (_, _) => Dispatcher.Invoke(HideWidget));
         menu.Items.Add("阅读资讯", null, (_, _) => Dispatcher.Invoke(OpenReader));
+        menu.Items.Add("Tibo 重置监控", null, (_, _) => Dispatcher.Invoke(TiboWindow.Open));
         menu.Items.Add("暂停 / 继续", null, (_, _) => Dispatcher.Invoke(TogglePause));
         menu.Items.Add("设置", null, (_, _) => Dispatcher.Invoke(OpenSettings));
         menu.Items.Add(new Forms.ToolStripSeparator());
@@ -253,6 +254,7 @@ public partial class MainWindow : Window
             var item = new MenuItem { Header = row, IsEnabled = enabled }; item.Click += (_, _) => action(); menu.Items.Add(item);
         }
         Add("≡", "打开阅读室", "摘要 / 原文", OpenReader);
+        Add("◷", "Tibo 重置监控", "状态 / 原帖", TiboWindow.Open);
         Add(paused ? "▶" : "Ⅱ", paused ? "继续播报" : "暂停播报", paused ? "已暂停" : "播放中", TogglePause);
         Add("→", "下一条资讯", "", Advance);
         menu.Items.Add(new Separator { Style = (Style)FindResource(typeof(Separator)) });

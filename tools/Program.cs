@@ -57,6 +57,25 @@ static class Program
         if (args[0] == "patch") { Patch(args[1], args[2], args[3]); return; }
         if (args[0] == "verify") { Verify(args[1]); return; }
         if (args[0] == "verify-top-label") { VerifyTopLabel(args[1], args[2]); return; }
+        if (args[0] == "tibo-test")
+        {
+            var fixture = """
+            {"schemaVersion":1,"timezone":"Asia/Shanghai","checkedAt":"2026-10-04T02:10:00+08:00","monitor":{"status":"healthy"},"events":[{"id":"sample","title":"测试重置记录","type":"direct_reset","displayLabel":"额度重置","status":"announced","presentation":{"audienceZh":"测试用户"},"confirmedAt":null,"schedule":{"label":"预计时间，尚未确认"},"posts":[{"text":"测试原帖","url":"https://x.com/test/status/1","stage":"预告"}]}]}
+            """;
+            var sample = TiboData.Parse(fixture);
+            Require(sample.Events[0].Status.Contains("等待确认") && sample.Events[0].Confirmed == "", "An estimate never becomes a confirmation");
+            Require(TiboData.Parse(fixture.Replace("announced", "confirmed")).Events[0].Status == "已确认", "Confirmed source status");
+            Require(!TiboData.SafeLink("javascript:alert(1)") && !TiboData.SafeLink("https://x.com.evil.test") && !TiboData.SafeLink("https://user:pass@x.com/test"), "Unsafe source URLs rejected");
+            Require(TiboData.Time("2026-10-03T18:10:00Z") == "10-04 02:10", "Beijing time conversion");
+            try { TiboData.Parse(fixture.Replace("\"schemaVersion\":1", "\"schemaVersion\":99")); throw new Exception("Unsupported schema accepted"); } catch(InvalidOperationException) { }
+            Require(TiboData.Parse("{\"schemaVersion\":1,\"timezone\":\"Asia/Shanghai\",\"events\":[]}").Events.Length == 0, "Empty records supported");
+            typeof(ReportTests).GetMethod("Initialize",System.Reflection.BindingFlags.Static|System.Reflection.BindingFlags.NonPublic)!.Invoke(null,null);
+            string json = args.Length > 2 ? File.ReadAllText(args[2]) : fixture;
+            var live = TiboData.Parse(json);
+            var window = new TiboWindow(json, false);
+            typeof(ReportTests).GetMethod("Capture",System.Reflection.BindingFlags.Static|System.Reflection.BindingFlags.NonPublic)!.Invoke(null,new object[]{window,args[1]});
+            window.Close(); Console.WriteLine($"PASS Tibo schema, status, links, Beijing time, empty records, offline layout; {live.Events.Length} records"); return;
+        }
         if (args[0] == "section-test")
         {
             typeof(ReportTests).GetMethod("Initialize",System.Reflection.BindingFlags.Static|System.Reflection.BindingFlags.NonPublic)!.Invoke(null,null);
