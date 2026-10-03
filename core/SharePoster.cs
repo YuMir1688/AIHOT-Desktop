@@ -145,7 +145,6 @@ internal sealed class ShareWindow : Window
         Caption("摘要", summaryCount);
         var summary = new TextBox { Text = SharePoster.SuggestedLead(item.Summary), FontSize = 12, Padding = new Thickness(12, 10, 12, 10), TextWrapping = TextWrapping.Wrap, AcceptsReturn = true, Height = 120, VerticalScrollBarVisibility = ScrollBarVisibility.Auto }; TextBlock.SetLineHeight(summary, 21); edit.Children.Add(summary);
         var editHint = Ui.Text("导读建议 180 字以内；不修改原资讯。", 10, Ui.Muted); editHint.Margin = new Thickness(0, 8, 0, 0); edit.Children.Add(editHint);
-        var restoreSummary = new Button { Content = "恢复完整摘要", HorizontalAlignment = HorizontalAlignment.Left, Padding = new Thickness(0, 4, 0, 0), FontSize = 10, Background = Brushes.Transparent, Foreground = Ui.Mint }; restoreSummary.Click += (_, _) => summary.Text = item.Summary ?? ""; edit.Children.Add(restoreSummary);
         void Counts() { titleCount.Text = $"{title.Text.Length} / 220"; summaryCount.Text = $"{summary.Text.Length} / 600"; titleCount.Foreground = title.Text.Length > 220 ? Ui.Brush("#E8A29E") : Ui.Muted; summaryCount.Foreground = summary.Text.Length > 600 ? Ui.Brush("#E8A29E") : Ui.Muted; } Counts();
         int selectedStyle = 0; BitmapSource? poster = null;
         var styleCaption = Ui.Text("选择版式 · 固定 3:4 · 720 × 960", 12); styleCaption.Margin = new Thickness(0, 16, 0, 8); controls.Children.Add(styleCaption);
