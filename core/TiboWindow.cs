@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Net;
@@ -10,10 +10,9 @@ using System.Windows.Controls;
 using System.Windows.Threading;
 
 namespace AiHot;
-public sealed class TiboWindow : Window
+public sealed class TiboPanel : UserControl
 {
     const string Endpoint = "https://aihot.news/api/v1/codex-resets";
-    static TiboWindow? current;
     static readonly HttpClient Client = new(new HttpClientHandler { AutomaticDecompression = DecompressionMethods.All }) { Timeout = TimeSpan.FromSeconds(25) };
     public sealed class Saved { public string Json {get;set;}=""; public string ETag {get;set;}=""; }
     readonly Grid content = new();
@@ -26,23 +25,19 @@ public sealed class TiboWindow : Window
     DateTime? selectedDate;
     readonly StackPanel details = new();
     Saved saved = new(); TiboData? data; bool busy, closed; DateTimeOffset retryAt;
-    internal static void Open()
+    public TiboPanel(string? sampleJson=null, bool online=true)
     {
-        if(current!=null) { current.Show();current.WindowState=WindowState.Normal;current.Activate();return; }
-        current=new TiboWindow();current.Closed+=(_,_)=>current=null;current.Show();
-    }
-    public TiboWindow(string? sampleJson=null, bool online=true)
-    {
-        Title="AIHOT · Tibo 重置监控";Width=1200;Height=750;MinWidth=800;MinHeight=500;WindowStartupLocation=WindowStartupLocation.CenterScreen;
-        var root=new DockPanel {Margin=new Thickness(24,20,24,18)};
+        var root=new DockPanel {Margin=new Thickness(24,8,24,18)};
         var top=new DockPanel {Margin=new Thickness(0,0,0,18)};
-        var actions=new StackPanel {Orientation=Orientation.Horizontal};actions.Children.Add(refresh);DockPanel.SetDock(actions,Dock.Right);top.Children.Add(actions);top.Children.Add(Ui.Text("重置日历",22));DockPanel.SetDock(top,Dock.Top);root.Children.Add(top);
+        var actions=new StackPanel {Orientation=Orientation.Horizontal};actions.Children.Add(refresh);DockPanel.SetDock(actions,Dock.Right);top.Children.Add(actions);top.Children.Add(Ui.Text("重置日历",18));DockPanel.SetDock(top,Dock.Top);root.Children.Add(top);
         status.Margin=new Thickness(0,12,0,0);DockPanel.SetDock(status,Dock.Bottom);root.Children.Add(status);
-        root.Children.Add(content);Ui.Shell(this,"Tibo 重置监控",root);
+        root.Children.Add(content);Content=root;
         try { saved=sampleJson==null?Storage.Read<Saved>("tibo-calendar-cache.json"):new Saved{Json=sampleJson};if(saved.Json.Length>0)data=TiboData.Parse(saved.Json); } catch { saved=new(); }
         Paint();refresh.Click+=async(_,_)=>await Refresh();timer.Tick+=async(_,_)=>await Refresh();
         if(online)Loaded+=async(_,_)=>{timer.Start();await Refresh();};
-        Closed+=(_,_)=>{closed=true;timer.Stop();cancellation.Cancel();};
+        Unloaded+=(_,_)=>timer.Stop();
+    }
+    internal void Stop() { closed=true;timer.Stop();cancellation.Cancel();
     }
     Button Link(string label,string url)
     {
@@ -59,7 +54,7 @@ public sealed class TiboWindow : Window
         void Metric(int column,string label,string value,string hint)
         {
             var box=new StackPanel();box.Children.Add(Ui.Text(label,12,Ui.Muted));var metric=Ui.Text(value,20,Ui.Ink);metric.Margin=new Thickness(0,4,0,4);box.Children.Add(metric);box.Children.Add(Ui.Text(hint,11,Ui.Muted));
-            var card=Ui.Card(box,"#121C27",16);card.BorderThickness=new Thickness(0);card.Margin=new Thickness(column==0?0:6,0,column==2?0:6,0);Grid.SetColumn(card,column);summary.Children.Add(card);
+            var card=Ui.Card(box,"#121C27",12);card.BorderThickness=new Thickness(0);card.Margin=new Thickness(column==0?0:6,0,column==2?0:6,0);Grid.SetColumn(card,column);summary.Children.Add(card);
         }
         int pending=data.Events.Count(e=>e.RawStatus!="confirmed");
         var latest=data.Events.Where(e=>e.RawStatus=="confirmed" && e.Confirmed.Length>0).OrderByDescending(e=>e.Confirmed).FirstOrDefault();
@@ -81,9 +76,9 @@ public sealed class TiboWindow : Window
         selectedDate??=data.Events.FirstOrDefault(e=>e.CalendarDate?.Year==month.Year && e.CalendarDate?.Month==month.Month)?.CalendarDate??month;
         for(int i=0;i<weeks*7;i++)
         {
-            var date=start.AddDays(i);var records=data.Events.Where(e=>e.CalendarDate==date).ToArray();var row=new StackPanel();var number=Ui.Text(date.Day.ToString(),14,date.Month==month.Month?Ui.Ink:Ui.Muted);var dayHeader=new DockPanel();if(date==Today){var today=Ui.Text("今天",10,Ui.Mint);today.HorizontalAlignment=HorizontalAlignment.Right;DockPanel.SetDock(today,Dock.Right);dayHeader.Children.Add(today);}dayHeader.Children.Add(number);row.Children.Add(dayHeader);
+            var date=start.AddDays(i);var records=data.Events.Where(e=>e.CalendarDate==date).ToArray();var row=new StackPanel();var number=Ui.Text(date.Day.ToString(),14,date.Month==month.Month?Ui.Ink:Ui.Muted);var dayHeader=new DockPanel();if(date==Today){var today=Ui.Text("今天",10,Ui.Mint);today.HorizontalAlignment=HorizontalAlignment.Right;DockPanel.SetDock(today,Dock.Right);dayHeader.Children.Add(today);}dayHeader.Children.Add(number);number.LineHeight=20;row.Children.Add(dayHeader);
             if(records.Length>0){var text=Ui.Text((records.All(e=>e.RawStatus=="confirmed")?"● ":"○ ")+(records.Length==1?records[0].Kind:records.Length+" 条动态"),10,records.All(e=>e.RawStatus=="confirmed")?Ui.Mint:Ui.Muted);text.TextWrapping=TextWrapping.NoWrap;text.TextTrimming=TextTrimming.CharacterEllipsis;row.Children.Add(text);}
-            var button=new Button {Content=row,HorizontalContentAlignment=HorizontalAlignment.Stretch,VerticalContentAlignment=VerticalAlignment.Top,Padding=new Thickness(10,8,10,8),Margin=new Thickness(3),BorderThickness=new Thickness(1),BorderBrush=Ui.Brush(selectedDate==date?"#538F82":date==Today?"#34534F":"#1B2834"),Background=Ui.Brush(selectedDate==date?"#193531":date.Month==month.Month?"#14202B":"#101922")};System.Windows.Automation.AutomationProperties.SetName(button,date.ToString("yyyy-MM-dd")+" · "+records.Length+" 条记录");button.Click+=(_,_)=>{selectedDate=date;if(date.Month!=month.Month)month=new(date.Year,date.Month,1);Paint();};Grid.SetColumn(button,i%7);Grid.SetRow(button,i/7+1);cells.Children.Add(button);
+            var button=new Button {Content=row,HorizontalContentAlignment=HorizontalAlignment.Stretch,VerticalContentAlignment=VerticalAlignment.Top,Padding=new Thickness(10,5,10,5),Margin=new Thickness(3),BorderThickness=new Thickness(1),BorderBrush=Ui.Brush(selectedDate==date?"#538F82":date==Today?"#34534F":"#1B2834"),Background=Ui.Brush(selectedDate==date?"#193531":date.Month==month.Month?"#14202B":"#101922")};System.Windows.Automation.AutomationProperties.SetName(button,date.ToString("yyyy-MM-dd")+" · "+records.Length+" 条记录");button.Click+=(_,_)=>{selectedDate=date;if(date.Month!=month.Month)month=new(date.Year,date.Month,1);Paint();};Grid.SetColumn(button,i%7);Grid.SetRow(button,i/7+1);cells.Children.Add(button);
         }
         calendar.Children.Add(cells);var calendarCard=Ui.Card(calendar,"#111B25",18);layout.Children.Add(calendarCard);
         var detailScroll=new ScrollViewer {Content=details,VerticalScrollBarVisibility=ScrollBarVisibility.Auto,HorizontalScrollBarVisibility=ScrollBarVisibility.Disabled};Grid.SetColumn(detailScroll,2);layout.Children.Add(detailScroll);content.Children.Add(layout);
@@ -135,3 +130,17 @@ public sealed class TiboWindow : Window
 
 
 
+
+// Preview host; production navigation embeds the panel in the existing reader.
+public sealed class TiboWindow : Window
+{
+    internal static void Open()
+    {
+        if(Application.Current.MainWindow is MainWindow main) main.NavigateCalendar();
+    }
+    public TiboWindow(string? sampleJson=null,bool online=true)
+    {
+        Title="AIHOT · Tibo 重置监控";Width=1200;Height=750;MinWidth=800;MinHeight=500;
+        var panel=new TiboPanel(sampleJson,online);Ui.Shell(this,"Tibo 重置监控",panel);Closed+=(_,_)=>panel.Stop();
+    }
+}

@@ -340,6 +340,10 @@ public partial class MainWindow : Window
         Shift.X = -Math.Min(scroll, overflow);
         if (scroll > overflow + settings.Speed * 2.5) Advance();
     }
+    internal void NavigateCalendar()
+    {
+        OpenReader();reader?.Show();reader?.ShowCalendar();reader?.Activate();
+    }
     internal void NavigateHome()
     {
         OpenReader(); reader?.Show(); reader?.GoHome(); reader?.Activate();

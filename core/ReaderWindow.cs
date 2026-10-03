@@ -8,6 +8,10 @@ using System.Windows.Input;
 namespace AiHot;
 public sealed class ReaderWindow : Window
 {
+    private readonly Border calendarHost = new() { Visibility=Visibility.Collapsed };
+    private TiboPanel? calendar;
+    private Action? showCalendar;
+    internal void ShowCalendar() => showCalendar?.Invoke();
     private Action? returnHome;
     internal void GoHome() => returnHome?.Invoke();
     private List<NewsItem> items;
@@ -36,6 +40,8 @@ public sealed class ReaderWindow : Window
         root.Children.Add(intro);
         var columns = new Grid(); columns.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(340) }); columns.ColumnDefinitions.Add(new ColumnDefinition()); Grid.SetRow(columns, 1); root.Children.Add(columns);
         var reportHost = new Border { Visibility = Visibility.Collapsed }; Grid.SetRow(reportHost, 1); root.Children.Add(reportHost);
+        Grid.SetRow(calendarHost,1);root.Children.Add(calendarHost);
+        Closed+=(_,_)=>calendar?.Stop();
         var sections = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center }; Grid.SetColumn(sections, 1); intro.Children.Add(sections);
         var sectionButtons = new List<Button>();
         for (int section = 0; section < 4; section++)
@@ -44,6 +50,7 @@ public sealed class ReaderWindow : Window
             var sectionButton = new Button { Content = new[] { "资讯", "日报", "周报", "月报" }[section], Padding = new Thickness(14, 6, 14, 6), Margin = new Thickness(4, 0, 0, 0), Background = section == 0 ? Ui.Brush("#23493F") : Ui.Brush("#1A2633") };
             sectionButton.Click += (_, _) => {
                 smoothList.Cancel(); smoothArticle.Cancel();
+                calendarHost.Visibility=Visibility.Collapsed;
                 columns.Visibility = selectedSection == 0 ? Visibility.Visible : Visibility.Collapsed;
                 reportHost.Visibility = selectedSection == 0 ? Visibility.Collapsed : Visibility.Visible;
                 if (selectedSection > 0) { NewsArchive.Record(Storage.Read<Cache>("cache.json").Items.Concat(items)); reportHost.Child = new ReportPanel(selectedSection); }
@@ -54,7 +61,13 @@ public sealed class ReaderWindow : Window
         }
         returnHome = () => sectionButtons[0].RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
         var monitor = new Button { Content = "重置日历", Padding = new Thickness(12,6,12,6), Margin = new Thickness(10,0,0,0), ToolTip = "打开 Tibo 重置监控" };
-        monitor.Click += (_,_) => TiboWindow.Open(); sections.Children.Add(monitor);
+        showCalendar=()=>{
+            returnHome?.Invoke();
+            calendar ??= new TiboPanel(); calendarHost.Child=calendar;
+            columns.Visibility=Visibility.Collapsed;reportHost.Visibility=Visibility.Collapsed;calendarHost.Visibility=Visibility.Visible;
+            foreach(var button in sectionButtons)button.Background=Ui.Brush("#1A2633");monitor.Background=Ui.Brush("#23493F");
+        };
+        monitor.Click += (_,_) => ShowCalendar(); sections.Children.Add(monitor);
         var left = new DockPanel { Margin = new Thickness(26, 0, 16, 20) }; var header = new StackPanel(); header.Children.Add(Ui.Text("搜索当前资讯  ·  Ctrl+F", 10, Ui.Muted));
         var searchRow = new Grid { Margin = new Thickness(0, 7, 0, 10) }; search.Height = 40; search.VerticalContentAlignment = VerticalAlignment.Center; search.Padding = new Thickness(12, 8, 36, 8); searchRow.Children.Add(search);
         var placeholder = Ui.Text("搜索标题、来源或关键词…", 12, Ui.Muted); placeholder.Margin = new Thickness(13, 0, 32, 0); placeholder.VerticalAlignment = VerticalAlignment.Center; placeholder.IsHitTestVisible = false; searchRow.Children.Add(placeholder);

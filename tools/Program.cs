@@ -100,6 +100,22 @@ static class Program
             Require(panels.All(p=>System.Windows.UIElement.VisibilityProperty.GetMetadata(p.GetType())!=null && !((System.Windows.UIElement)p).IsVisible),"Home hides report content");
             var monitor=Walk(readerWindow).OfType<System.Windows.Controls.Button>().Single(b=>b.Content as string=="重置日历");
             Require(monitor.IsEnabled,"Calendar entry available from reader");
+            var calendarType=typeof(NewsItem).Assembly.GetType("AiHot.TiboPanel")!;
+            var sample="{\"schemaVersion\":1,\"timezone\":\"Asia/Shanghai\",\"events\":[],\"monitor\":{\"status\":\"healthy\"}}";
+            if(args.Length>2)sample=File.ReadAllText(args[2]);
+            var calendar=(System.Windows.Controls.UserControl)Activator.CreateInstance(calendarType,new object[]{sample,false})!;
+            readerType.GetField("calendar",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic)!.SetValue(readerWindow,calendar);
+            for(int cycle=0;cycle<3;cycle++) {
+                monitor.RaiseEvent(new System.Windows.RoutedEventArgs(System.Windows.Controls.Button.ClickEvent));
+                var calendarHost=(System.Windows.Controls.Border)readerType.GetField("calendarHost",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic)!.GetValue(readerWindow)!;
+                Require(calendarHost.Visibility==System.Windows.Visibility.Visible && ReferenceEquals(calendarHost.Child,calendar),"Calendar embedded and reused");
+                Require(ReferenceEquals(System.Windows.Window.GetWindow(calendar),readerWindow),"Calendar belongs to the existing reader window");
+                if(cycle==0 && args.Length>1)typeof(ReportTests).GetMethod("Capture",System.Reflection.BindingFlags.Static|System.Reflection.BindingFlags.NonPublic)!.Invoke(null,new object[]{readerWindow,args[1]});
+                SelectTab(cycle);
+                Require(calendarHost.Visibility==System.Windows.Visibility.Collapsed,"Reader tabs hide calendar");
+                if(cycle==0)Require(((System.Windows.FrameworkElement)panels[0]).Parent is System.Windows.Controls.Grid,"Reports retained after calendar navigation");
+            }
+            Console.WriteLine("PASS embedded calendar: reused panel, no extra windows, return to reader/report tabs");
             Require(File.GetLastWriteTimeUtc(file)==before,"Tab switching never rewrites history");
             Console.WriteLine($"PASS cached panels, 20 tab switches in {timer.ElapsedMilliseconds} ms before display layout, no archive writes");readerWindow.Close();return;
         }
@@ -341,3 +357,4 @@ static class Program
         Console.WriteLine("PASS 今日精选 TOP label; TOP100 removed");
     }
 }
+

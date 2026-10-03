@@ -1,4 +1,4 @@
-using System.IO;
+﻿using System.IO;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Windows;
@@ -20,7 +20,15 @@ public static class ReaderSections {
   var host=(Border)Get(shared,"reportHost"); var columns=(Grid)Get(shared,"columns");
   var buttons=(List<Button>)Get(shared,"sectionButtons"); var state=States.GetOrCreateValue(host);
   var stamp=File.GetLastWriteTimeUtc(Path.Combine(Storage.Root,"history.json")); var day=NewsService.BeijingDate(DateTimeOffset.UtcNow);
-  if(state.Selected==section&&state.Stamp==stamp&&state.Day==day)return;
+  var reader=Window.GetWindow(host);
+  var calendar=reader?.GetType().GetField("calendarHost",Flags)?.GetValue(reader) as Border;
+  bool fromCalendar=calendar?.Visibility==Visibility.Visible;
+  if(calendar!=null)calendar.Visibility=Visibility.Collapsed;
+  if(reader!=null && reader.Content!=null) {
+   void ClearCalendar(DependencyObject node) { if(node is Button button && button.Content as string=="重置日历")button.Background=ReportSharing.Brush("#1A2633");foreach(var child in LogicalTreeHelper.GetChildren(node).OfType<DependencyObject>())ClearCalendar(child); }
+   ClearCalendar(reader);
+  }
+  if(!fromCalendar&&state.Selected==section&&state.Stamp==stamp&&state.Day==day)return;
   for(int i=0;i<buttons.Count;i++)buttons[i].Background=ReportSharing.Brush(i==section?"#23493F":"#1A2633");
   int request=++state.Request;
   if(section==0){state.Selected=0;columns.Visibility=Visibility.Visible;host.Visibility=Visibility.Collapsed;return;}
