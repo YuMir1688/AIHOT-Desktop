@@ -20,80 +20,81 @@ public static class EditorialCard
             // Each edition has a distinct masthead; content and source keep the same reading order.
             if (style == 0)
             {
-                var masthead = T("AI BRIEF", 48, ink, 390, true, 1.0, "Arial");
-                dc.DrawText(masthead, new Point(left - 2, 46));
-                double creditY = AlignedCredit(dc, masthead, 46, ink);
+                var masthead = T("AI BRIEF", 44, ink, 390, true, 1.0, "Arial");
+                dc.DrawText(masthead, new Point(left, 48));
+                double creditY = AlignedCredit(dc, masthead, 48, ink);
                 Right(dc, "读一条，知新事。", 12, muted, 668, creditY + 26);
             }
             else if (style == 1)
             {
-                dc.DrawEllipse(accent, null, new Point(70, 73), 18, 18);
-                dc.DrawEllipse(B(p.Paper), null, new Point(79, 66), 16, 16);
-                dc.DrawText(T("AFTER HOURS", 31, ink, 400, true, 1.0, "Arial"), new Point(109, 54));
-                dc.DrawText(T("YuMir 的阅读室 / 夜读精选", 13, muted, 400), new Point(110, 93));
-                Right(dc, "AI HOT", 13, accent, 668, 61);
+                dc.DrawEllipse(accent, null, new Point(75, 72), 20, 20);
+                dc.DrawEllipse(B(p.Paper), null, new Point(84, 64), 18, 18);
+                dc.DrawText(T("AFTER HOURS", 32, ink, 400, true, 1.0, "Arial"), new Point(116, 48));
+                dc.DrawText(T("YuMir 的阅读室 / 夜读精选", 13, muted, 400), new Point(117, 92));
+                Right(dc, "NIGHT EDIT", 11, accent, 668, 60);
             }
             else if (style == 2)
             {
-                dc.DrawRectangle(accent, null, new Rect(0, 0, 720, 129));
-                var masthead = T("AI HOT.", 56, Brushes.White, 400, true, 1, "Arial");
-                dc.DrawText(masthead, new Point(left - 3, 39));
-                double creditY = AlignedCredit(dc, masthead, 39, Brushes.White);
+                dc.DrawRectangle(accent, null, new Rect(0, 0, 720, 132));
+                var masthead = T("AI HOT.", 50, Brushes.White, 400, true, 1, "Arial");
+                dc.DrawText(masthead, new Point(left, 42));
+                double creditY = AlignedCredit(dc, masthead, 42, Brushes.White);
                 Right(dc, "THE AI EDIT", 12, Brushes.White, 668, creditY + 26);
             }
             else if (style == 3)
             {
-                dc.DrawRectangle(accent, null, new Rect(left, 48, 5, 58));
-                dc.DrawText(T("AI / BRIEFING", 38, ink, 450, true, 1, "Arial"), new Point(76, 44));
-                dc.DrawText(T("YuMir 的阅读室 · 科技简报", 13, muted, 400), new Point(78, 93));
-                for (int i = 0; i < 4; i++) dc.DrawRectangle(accent, null, new Rect(612 + i * 14, 61 + i * 7, 5, 34 - i * 7));
+                dc.DrawRectangle(accent, null, new Rect(left, 46, 4, 60));
+                dc.DrawText(T("AI / BRIEFING", 34, ink, 450, true, 1, "Arial"), new Point(72, 47));
+                dc.DrawText(T("YuMir 的阅读室 · 科技简报", 13, muted, 400), new Point(73, 92));
+                for (int i = 0; i < 4; i++) dc.DrawRectangle(accent, null, new Rect(610 + i * 14, 76 - i * 6, 5, 18 + i * 6));
             }
             else if (style == 4)
             {
-                dc.DrawText(T("阅 / 知新", 38, ink, 400, true, 1.0, "Microsoft YaHei UI"), new Point(left, 44));
-                dc.DrawText(T("YuMir 的阅读室", 13, muted, 400), new Point(left + 2, 98));
-                dc.DrawRectangle(accent, null, new Rect(617, 0, 51, 106));
-                dc.DrawText(T("AI", 23, B(p.Paper), 45, true, 1, "Arial"), new Point(628, 54));
+                dc.DrawText(T("阅 / 知新", 38, ink, 400, true, 1.0, "Microsoft YaHei UI"), new Point(left, 46));
+                dc.DrawText(T("YuMir 的阅读室", 13, muted, 400), new Point(left + 2, 96));
+                var ribbon=new StreamGeometry();using(var path=ribbon.Open()){path.BeginFigure(new Point(617,0),true,true);path.LineTo(new Point(668,0),true,false);path.LineTo(new Point(668,112),true,false);path.LineTo(new Point(642.5,99),true,false);path.LineTo(new Point(617,112),true,false);}dc.DrawGeometry(accent,null,ribbon);
+                dc.DrawText(T("AI", 23, B(p.Paper), 45, true, 1, "Arial"), new Point(628, 50));
             }
             else if(style==5)
             {
-                dc.DrawRoundedRectangle(B(p.Panel),new Pen(B(p.Line),1),new Rect(left,40,616,72),8,8);
-                dc.DrawText(T(">_ AI LOG",34,accent,370,true,1,"Consolas"),new Point(left+18,49));
-                Right(dc,"YuMir / TECH NOTES",12,muted,648,58);
-                Right(dc,"READ • THINK • BUILD",10,muted,648,83);
+                dc.DrawRoundedRectangle(B(p.Panel),new Pen(B(p.Line),1),new Rect(left,38,616,78),8,8);
+                dc.DrawText(T(">_ AI LOG",32,accent,370,true,1,"Consolas"),new Point(left+18,47));
+                Right(dc,"YuMir / TECH NOTES",11,muted,648,51);
+                Right(dc,"READ / THINK / BUILD",10,muted,648,82);
+                dc.DrawText(T("SYSTEM / KNOWLEDGE FEED",9,muted,300,false,1,"Consolas"),new Point(left+20,92));
             }
             else if(style==6)
             {
                 dc.DrawEllipse(null,new Pen(accent,2),new Point(83,74),27,27);
                 dc.DrawEllipse(accent,null,new Point(105,56),5,5);
-                dc.DrawText(T("ORBIT / 知新",34,ink,440,true,1,"Arial"),new Point(126,47));
+                dc.DrawText(T("ORBIT",38,ink,400,true,1,"Arial"),new Point(128,46));
                 dc.DrawText(T("YuMir 的阅读室 · 灵感环游",13,muted,440),new Point(128,94));
-                Right(dc,"✦",28,accent,668,52);
+                dc.DrawLine(new Pen(accent,1.5),new Point(651,53),new Point(651,77));dc.DrawLine(new Pen(accent,1.5),new Point(639,65),new Point(663,65));
             }
             else if(style==7)
             {
-                dc.DrawRoundedRectangle(accent,null,new Rect(left,42,66,66),33,33);
+                dc.DrawRoundedRectangle(B("#E6CE42"),null,new Rect(left,43,64,64),32,32);
                 dc.DrawText(T("AI",28,ink,62,true,1,"Arial"),new Point(left+13,56));
-                dc.DrawText(T("FRESH TAKE",37,ink,490,true,1,"Arial"),new Point(137,43));
-                dc.DrawText(T("YuMir / 新鲜视角 · 每日上映",13,muted,490),new Point(139,94));
+                dc.DrawText(T("FRESH TAKE",35,ink,490,true,1,"Arial"),new Point(136,46));
+                dc.DrawText(T("YuMir / 新鲜视角 · 每日上映",13,muted,490),new Point(138,92));
             }
             else if(style==8)
             {
                 dc.DrawLine(new Pen(ink,3),new Point(left,35),new Point(668,35));
-                dc.DrawText(T("THE AI PAPER",39,ink,470,true,1,"Georgia"),new Point(left,45));
-                Right(dc,"YuMir 阅读室",13,ink,668,57);
-                Right(dc,"观察 / 记录 / 思考",10,muted,668,87);
+                dc.DrawText(T("THE AI PAPER",34,ink,420,true,1,"Georgia"),new Point(left,48));
+                Right(dc,"YuMir 阅读室",12,ink,668,54);
+                Right(dc,"观察 / 记录 / 思考",10,muted,668,86);
                 dc.DrawLine(new Pen(ink,1),new Point(left,119),new Point(668,119));
             }
             else
             {
-                dc.DrawRoundedRectangle(B(p.Panel),null,new Rect(left,39,616,78),10,10);
-                dc.DrawText(T("灵感便签",37,ink,370,true),new Point(left+17,45));
-                dc.DrawText(T("YuMir / 把新发现留在这里",12,muted,390),new Point(left+20,94));
-                dc.DrawRoundedRectangle(accent,null,new Rect(594,54,55,45),7,7);
-                dc.DrawText(T("AI",23,Brushes.White,45,true,1,"Arial"),new Point(607,61));
+                dc.DrawRoundedRectangle(B(p.Panel),null,new Rect(left,38,616,78),10,10);
+                dc.DrawText(T("灵感便签",34,ink,370,true),new Point(left+18,44));
+                dc.DrawText(T("YuMir / 把新发现留在这里",12,muted,390),new Point(left+20,92));
+                dc.DrawRoundedRectangle(accent,null,new Rect(594,52,55,48),7,7);
+                dc.DrawText(T("AI",23,Brushes.White,45,true,1,"Arial"),new Point(607,63));
             }
-            if (style != 2) dc.DrawLine(new Pen(B(p.Line), 1), new Point(left, 132), new Point(668, 132));
+            if (style != 2 && style != 8) dc.DrawLine(new Pen(B(p.Line), 1), new Point(left, 132), new Point(668, 132));
     }
     private static readonly Palette[] Palettes = [
         new("#F6F3EC", "#242721", "#70726B", "#C94F35", "#D8D6CC", "#EDEAE1"),
@@ -103,9 +104,9 @@ public static class EditorialCard
         new("#F4EADB", "#3D352C", "#81715E", "#946331", "#D8C9B5", "#EBDFCC"),
         new("#101B20", "#E3F3ED", "#9CB3AA", "#9EF0A3", "#31443D", "#192A25"),
         new("#F1ECFA", "#322947", "#786C8E", "#8058B5", "#D9CCE9", "#E6DCF3"),
-        new("#FFFCEB", "#292C20", "#787A61", "#E6CE42", "#E4E1C8", "#F5F0CB"),
+        new("#FFFCEB", "#292C20", "#787A61", "#887323", "#E4E1C8", "#F5F0CB"),
         new("#FAFAF7", "#212421", "#73766F", "#444941", "#D6D8D0", "#EEEFE9"),
-        new("#FFF4EC", "#4A302B", "#94796C", "#D9826D", "#ECD3C5", "#F6DFD0")
+        new("#FFF4EC", "#4A302B", "#94796C", "#B9604B", "#ECD3C5", "#F6DFD0")
     ];
 
     public static BitmapSource Render(NewsItem item, string title, string summary, int style)

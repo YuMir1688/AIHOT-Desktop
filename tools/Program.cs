@@ -1,4 +1,4 @@
-﻿using System.IO;
+using System.IO;
 using System.Text.Json;
 using System.Windows.Media.Imaging;
 using AiHot;
@@ -89,6 +89,19 @@ static class Program
             Require(ReferenceEquals(host.Child,reportView),"Picker completion restores same report editor");
             report.Close();Require(host.Visibility==System.Windows.Visibility.Collapsed,"Report returns to original reader");
             reader.Close();Console.WriteLine("PASS embedded article/report sharing, nested picker completion, same reader host and return");return;
+        }
+        if(args[0]=="style-sheet")
+        {
+            var demo=new NewsItem {Id="style-review",Title="把值得关注的新进展，留给认真阅读的人",Summary="从纷繁的信息里，整理清晰的线索。读一条动态，了解它的背景与意义，再沿着原文继续探索。\n\n记录新发现，也留一点空间给自己的思考。",Source=new(){Name="YuMir 的阅读室"},Category="tip",Links=new(){Original="https://aihot.news"},DiscoveredAt=new DateTimeOffset(2026,10,4,12,0,0,TimeSpan.FromHours(8))};
+            var visual=new System.Windows.Media.DrawingVisual();using(var drawing=visual.RenderOpen()) {
+                drawing.DrawRectangle(System.Windows.Media.Brushes.DimGray,null,new System.Windows.Rect(0,0,1900,1080));
+                for(int i=0;i<EditorialCard.Names.Length;i++) {
+                    double x=20+(i%5)*376,y=16+(i/5)*532;
+                    var caption=new System.Windows.Media.FormattedText(EditorialCard.Names[i],System.Globalization.CultureInfo.GetCultureInfo("zh-CN"),System.Windows.FlowDirection.LeftToRight,new System.Windows.Media.Typeface("Microsoft YaHei UI"),18,System.Windows.Media.Brushes.White,1);
+                    drawing.DrawText(caption,new System.Windows.Point(x,y));drawing.DrawImage(EditorialCard.Render(demo,demo.Title,demo.Summary!,i),new System.Windows.Rect(x,y+32,354,472));
+                }
+            }
+            var sheet=new RenderTargetBitmap(1900,1080,96,96,System.Windows.Media.PixelFormats.Pbgra32);sheet.Render(visual);var encoder=new PngBitmapEncoder();encoder.Frames.Add(BitmapFrame.Create(sheet));using(var file=File.Create(args[1]))encoder.Save(file);Console.WriteLine("PASS ten full-card visual review sheets");return;
         }
         if (args[0] == "patch") { Patch(args[1], args[2], args[3]); return; }
         if (args[0] == "verify") { Verify(args[1]); return; }
@@ -388,5 +401,6 @@ static class Program
         Console.WriteLine("PASS 今日精选 TOP label; TOP100 removed");
     }
 }
+
 
 
