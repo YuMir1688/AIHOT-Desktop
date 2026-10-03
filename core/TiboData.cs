@@ -7,6 +7,11 @@ namespace AiHot;
 public sealed record TiboPost(string Text, string Url, string Stage);
 public sealed record TiboEvent(string Id, string Title, string Kind, string Status, string Audience, string Estimate, string Confirmed, TiboPost[] Posts)
 {
+    public string OccurredOn { get; init; } = "";
+    public string ScheduledAt { get; init; } = "";
+    public string CreatedAt { get; init; } = "";
+    public DateTime? CalendarDate => DateTimeOffset.TryParse(OccurredOn.Length>0?OccurredOn:Confirmed.Length>0?Confirmed:ScheduledAt.Length>0?ScheduledAt:CreatedAt, out var date) ? date.ToOffset(TimeSpan.FromHours(8)).Date : null;
+    public string DateMeaning => OccurredOn.Length>0?"发生日期":Confirmed.Length>0?"确认帖日期":ScheduledAt.Length>0?"预计日期":"预告帖日期";
     public string RawStatus { get; init; } = "";
     public string UpdatedAt { get; init; } = "";
 }
@@ -32,7 +37,7 @@ public sealed record TiboData(string CheckedAt, string Health, TiboEvent[] Event
             string audience = Text(presentation,"audienceZh"); if (audience.Length == 0) audience = Text(e,"scope");
             string kind = Text(e,"displayLabel"); if (kind.Length == 0) kind = Text(e,"type") == "direct_reset" ? "额度重置" : "重置记录";
             if (Text(e,"id").Length == 0 || Text(e,"title").Length == 0) throw new InvalidOperationException("监控记录不完整");
-            events.Add(new(Text(e,"id"),Text(e,"title"),kind,label,audience,Text(Child(e,"schedule"),"label"),Text(e,"confirmedAt"),parsed) { RawStatus=Text(e,"status"), UpdatedAt=Text(e,"updatedAt") });
+            events.Add(new(Text(e,"id"),Text(e,"title"),kind,label,audience,Text(Child(e,"schedule"),"label"),Text(e,"confirmedAt"),parsed) { OccurredOn=Text(e,"occurredOn"), ScheduledAt=Text(Child(e,"schedule"),"from"), CreatedAt=Text(e,"createdAt"), RawStatus=Text(e,"status"), UpdatedAt=Text(e,"updatedAt") });
         }
         if (events.Select(e=>e.Id).Distinct().Count()!=events.Count) throw new InvalidOperationException("监控记录重复");
         return new(Text(root,"checkedAt"),Text(Child(root,"monitor"),"status"),events.ToArray());
