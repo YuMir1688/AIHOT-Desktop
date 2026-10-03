@@ -1,4 +1,4 @@
-using System.Globalization;
+﻿using System.Globalization;
 using System.IO;
 using System.Windows;
 using System.Windows.Media;
@@ -10,7 +10,7 @@ namespace YuMir.Cards;
 
 public static class EditorialCard
 {
-    public static readonly string[] Names = ["编辑精选", "午夜薄荷", "朱红刊物", "蓝调简报", "暖纸书签"];
+    public static readonly string[] Names = ["编辑精选", "午夜薄荷", "朱红刊物", "蓝调简报", "暖纸书签", "极客终端", "星轨紫笺", "柠檬放映", "黑白报刊", "珊瑚便签"];
     internal sealed record Palette(string Paper, string Ink, string Muted, string Accent, string Line, string Panel);
     internal static Palette GetPalette(int style) => Palettes[style];
     internal static void DrawMasthead(DrawingContext dc, int style)
@@ -48,12 +48,50 @@ public static class EditorialCard
                 dc.DrawText(T("YuMir 的阅读室 · 科技简报", 13, muted, 400), new Point(78, 93));
                 for (int i = 0; i < 4; i++) dc.DrawRectangle(accent, null, new Rect(612 + i * 14, 61 + i * 7, 5, 34 - i * 7));
             }
-            else
+            else if (style == 4)
             {
                 dc.DrawText(T("阅 / 知新", 38, ink, 400, true, 1.0, "Microsoft YaHei UI"), new Point(left, 44));
                 dc.DrawText(T("YuMir 的阅读室", 13, muted, 400), new Point(left + 2, 98));
                 dc.DrawRectangle(accent, null, new Rect(617, 0, 51, 106));
                 dc.DrawText(T("AI", 23, B(p.Paper), 45, true, 1, "Arial"), new Point(628, 54));
+            }
+            else if(style==5)
+            {
+                dc.DrawRoundedRectangle(B(p.Panel),new Pen(B(p.Line),1),new Rect(left,40,616,72),8,8);
+                dc.DrawText(T(">_ AI LOG",34,accent,370,true,1,"Consolas"),new Point(left+18,49));
+                Right(dc,"YuMir / TECH NOTES",12,muted,648,58);
+                Right(dc,"READ • THINK • BUILD",10,muted,648,83);
+            }
+            else if(style==6)
+            {
+                dc.DrawEllipse(null,new Pen(accent,2),new Point(83,74),27,27);
+                dc.DrawEllipse(accent,null,new Point(105,56),5,5);
+                dc.DrawText(T("ORBIT / 知新",34,ink,440,true,1,"Arial"),new Point(126,47));
+                dc.DrawText(T("YuMir 的阅读室 · 灵感环游",13,muted,440),new Point(128,94));
+                Right(dc,"✦",28,accent,668,52);
+            }
+            else if(style==7)
+            {
+                dc.DrawRoundedRectangle(accent,null,new Rect(left,42,66,66),33,33);
+                dc.DrawText(T("AI",28,ink,62,true,1,"Arial"),new Point(left+13,56));
+                dc.DrawText(T("FRESH TAKE",37,ink,490,true,1,"Arial"),new Point(137,43));
+                dc.DrawText(T("YuMir / 新鲜视角 · 每日上映",13,muted,490),new Point(139,94));
+            }
+            else if(style==8)
+            {
+                dc.DrawLine(new Pen(ink,3),new Point(left,35),new Point(668,35));
+                dc.DrawText(T("THE AI PAPER",39,ink,470,true,1,"Georgia"),new Point(left,45));
+                Right(dc,"YuMir 阅读室",13,ink,668,57);
+                Right(dc,"观察 / 记录 / 思考",10,muted,668,87);
+                dc.DrawLine(new Pen(ink,1),new Point(left,119),new Point(668,119));
+            }
+            else
+            {
+                dc.DrawRoundedRectangle(B(p.Panel),null,new Rect(left,39,616,78),10,10);
+                dc.DrawText(T("灵感便签",37,ink,370,true),new Point(left+17,45));
+                dc.DrawText(T("YuMir / 把新发现留在这里",12,muted,390),new Point(left+20,94));
+                dc.DrawRoundedRectangle(accent,null,new Rect(594,54,55,45),7,7);
+                dc.DrawText(T("AI",23,Brushes.White,45,true,1,"Arial"),new Point(607,61));
             }
             if (style != 2) dc.DrawLine(new Pen(B(p.Line), 1), new Point(left, 132), new Point(668, 132));
     }
@@ -62,7 +100,12 @@ public static class EditorialCard
         new("#132D29", "#F0F4E9", "#B1C7BD", "#A9E7C8", "#37534B", "#1C3832"),
         new("#FAF8F3", "#262725", "#77756D", "#BD3429", "#D8D5CD", "#F0EBE2"),
         new("#EDF2F8", "#173653", "#60768A", "#285CCB", "#CBD7E6", "#E0E8F3"),
-        new("#F4EADB", "#3D352C", "#81715E", "#946331", "#D8C9B5", "#EBDFCC")
+        new("#F4EADB", "#3D352C", "#81715E", "#946331", "#D8C9B5", "#EBDFCC"),
+        new("#101B20", "#E3F3ED", "#9CB3AA", "#9EF0A3", "#31443D", "#192A25"),
+        new("#F1ECFA", "#322947", "#786C8E", "#8058B5", "#D9CCE9", "#E6DCF3"),
+        new("#FFFCEB", "#292C20", "#787A61", "#E6CE42", "#E4E1C8", "#F5F0CB"),
+        new("#FAFAF7", "#212421", "#73766F", "#444941", "#D6D8D0", "#EEEFE9"),
+        new("#FFF4EC", "#4A302B", "#94796C", "#D9826D", "#ECD3C5", "#F6DFD0")
     ];
 
     public static BitmapSource Render(NewsItem item, string title, string summary, int style)

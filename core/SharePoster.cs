@@ -9,7 +9,7 @@ using QRCoder;
 namespace AiHot;
 internal static class SharePoster
 {
-    internal static readonly string[] Names = { "薄荷白", "暖纸米白", "冰川蓝", "柔和米灰", "薰衣草灰" };
+    internal static readonly string[] Names = { "薄荷白", "暖纸米白", "冰川蓝", "柔和米灰", "薰衣草灰", "极客终端", "星轨紫笺", "柠檬放映", "黑白报刊", "珊瑚便签" };
     private sealed record Palette(string Outer, string Paper, string Ink, string Muted, string Accent, string Badge, string Line, double Radius);
     private static readonly Palette[] Palettes = {
         new("#F2F5EF", "#FFFFFF", "#17362F", "#526D65", "#087C61", "#EAF4EE", "#DCE6DF", 30),
@@ -164,7 +164,7 @@ internal sealed class ShareWindow : Window
             int choice = i; var tile = new StackPanel();
             try { tile.Children.Add(new Image { Source = SharePoster.Render(item, "值得分享的 AI 动态", "资讯摘要与原文入口", i), Width = 36, Height = 48, Stretch = Stretch.Uniform }); } catch { }
             var label = Ui.Text(SharePoster.Names[i], 9); label.HorizontalAlignment = HorizontalAlignment.Center; label.Margin = new Thickness(0, 5, 0, 0); tile.Children.Add(label);
-            var button = new Button { Content = tile, Padding = new Thickness(3, 7, 3, 7), BorderThickness = new Thickness(1), Margin = new Thickness(0, 0, 3, 0), ToolTip = SharePoster.Names[i] };
+            var button = new Button { Content = tile, Padding = new Thickness(3, 7, 3, 7), BorderThickness = new Thickness(1), Margin = new Thickness(0, 0, 3, 6), ToolTip = SharePoster.Names[i] };
             button.Click += (_, _) => { selectedStyle = choice; previewDelay.Stop(); PaintStyle(); Generate(); }; styleButtons.Add(button); styles.Children.Add(button);
         } PaintStyle();
         copy.Click += (_, _) => { try { if (poster != null) { Clipboard.SetImage(poster); status.Text = "图片已复制，可粘贴分享。"; } } catch { status.Text = "剪贴板暂时被占用，请重试或保存 PNG。"; } };

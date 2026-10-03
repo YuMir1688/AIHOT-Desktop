@@ -101,7 +101,7 @@ public sealed class ReportShareWindow : Window
     private readonly TextBlock selectionLabel = Label("", 12);
     private readonly TextBox lead = new() { AcceptsReturn = true, TextWrapping = TextWrapping.Wrap, Height = 91, Padding = new Thickness(10), VerticalScrollBarVisibility = ScrollBarVisibility.Auto };
     private readonly ListBox list = new() { Height = 242, HorizontalContentAlignment = HorizontalAlignment.Stretch, BorderThickness = new Thickness(0) };
-    private readonly UniformGrid styles = new() { Columns = 3, Margin = new Thickness(-4, 0, -4, 0) };
+    private readonly UniformGrid styles = new() { Columns = 5, Margin = new Thickness(-4, 0, -4, 0) };
     private readonly List<Button> styleButtons = new();
     private int selectedStyle;
     private readonly Button previous = ActionButton("← 上一张"), next = ActionButton("下一张 →");
@@ -129,7 +129,7 @@ public sealed class ReportShareWindow : Window
             int choice = i;
             var content = new StackPanel();
             var miniature = templateDocument.WithStyle(i).Render(0);
-            var image = new Image { Source = miniature, Height = 86, Stretch = Stretch.Uniform };
+            var image = new Image { Source = miniature, Height = 54, Stretch = Stretch.Uniform };
             RenderOptions.SetBitmapScalingMode(image, BitmapScalingMode.HighQuality);
             var previewFrame = new Grid { Margin = new Thickness(0, 0, 0, 7) };
             previewFrame.Children.Add(image);
@@ -145,7 +145,7 @@ public sealed class ReportShareWindow : Window
         PaintStyles();
         Title = "分享报告 · " + snapshot.Name; Width = 1180; Height = 820; MinWidth = 920; MinHeight = 660;
         var root = new Grid { Margin = new Thickness(24) }; root.Resources.MergedDictionaries.Add(PickerStyles.Create());
-        root.ColumnDefinitions.Add(new ColumnDefinition()); root.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(365) });
+        root.ColumnDefinitions.Add(new ColumnDefinition()); root.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(480) });
         var canvas = new DockPanel { Margin = new Thickness(0), LastChildFill = true };
         navigation.Margin = new Thickness(0, 12, 0, 0);
         navigation.Children.Add(previous); navigation.Children.Add(next);

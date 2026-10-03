@@ -1,4 +1,4 @@
-using System.Globalization;
+﻿using System.Globalization;
 using System.IO;
 using System.Text.Json;
 using System.Windows;
@@ -32,7 +32,7 @@ public sealed class ReportDocument
     public IReadOnlyList<ReportPage> Pages { get; }
     public ReportDocument(ReportSnapshot snapshot, IEnumerable<NewsItem> selected, string lead, int style)
     {
-        if (style is < 0 or > 4) throw new ArgumentOutOfRangeException(nameof(style));
+        if (style < 0 || style >= EditorialCard.Names.Length) throw new ArgumentOutOfRangeException(nameof(style));
         if (lead.Length > 180) throw new InvalidOperationException("封面导读请控制在 180 字以内。");
         Snapshot = snapshot; Selected = selected.Select(ReportSnapshot.Copy).ToArray(); Lead = lead.Trim(); Style = style;
         var pages = new List<ReportPage> { new(null, "", 0, 0, 0) };
@@ -49,7 +49,7 @@ public sealed class ReportDocument
         Snapshot = source.Snapshot; Selected = source.Selected; Lead = source.Lead;
         Pages = source.Pages; Style = style;
     }
-    public ReportDocument WithStyle(int style) => style is >= 0 and <= 4 ? new ReportDocument(this, style) : throw new ArgumentOutOfRangeException(nameof(style));
+    public ReportDocument WithStyle(int style) => style >= 0 && style < EditorialCard.Names.Length ? new ReportDocument(this, style) : throw new ArgumentOutOfRangeException(nameof(style));
     public BitmapSource Render(int index) => ReportCards.Render(this, index);
     public static void Save(BitmapSource image, string path)
     {
