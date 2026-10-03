@@ -64,7 +64,7 @@ public static class EditorialCard
             else if(style==6)
             {
                 dc.DrawEllipse(null,new Pen(accent,2),new Point(83,74),27,27);
-                dc.DrawEllipse(accent,null,new Point(105,56),5,5);
+                dc.DrawEllipse(accent,null,new Point(112,47),4,4);
                 dc.DrawText(T("AI HOT.",38,ink,400,true,1,"Arial"),new Point(128,46));
                 dc.DrawText(T("YuMir 的阅读室 · 灵感环游",13,muted,440),new Point(128,94));
                 dc.DrawLine(new Pen(accent,1.5),new Point(651,53),new Point(651,77));dc.DrawLine(new Pen(accent,1.5),new Point(639,65),new Point(663,65));
@@ -240,6 +240,7 @@ public static class EditorialCard
         return y;
     }
 }
+
 
 
 
