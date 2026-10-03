@@ -61,7 +61,7 @@ public static class ReaderSidebar
             columns.ColumnDefinitions[0].MinWidth = 360;
             columns.ColumnDefinitions[0].MaxWidth = 540;
             columns.ColumnDefinitions[1].MinWidth = 430;
-            var splitter = new GridSplitter { Width = 6, HorizontalAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Stretch, Background = Brushes.Transparent, ResizeDirection = GridResizeDirection.Columns, ResizeBehavior = GridResizeBehavior.CurrentAndNext, ToolTip = "拖动调整资讯列表宽度", Margin = new Thickness(0,0,0,24) };
+            var splitter = new GridSplitter { Width = 6, HorizontalAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Stretch, Background = Brushes.Transparent, ResizeDirection = GridResizeDirection.Columns, ResizeBehavior = GridResizeBehavior.CurrentAndNext, Margin = new Thickness(0,0,0,24) };
             columns.Children.Add(splitter);
             var search = (TextBox)Get("search"); search.Height = 42; search.Background = ReportSharing.Brush("#182431"); search.Foreground = ReportSharing.Brush("#DCE7EF");
             if (sidebar.Children[0] is StackPanel header)

@@ -11,7 +11,7 @@ internal static class Ui
     internal static void MakeDraggable(UIElement region)
     {
         region.SetValue(DragRegionProperty, true);
-        if (region is FrameworkElement element) { element.Cursor = Cursors.SizeAll; element.ToolTip = "按住鼠标左键拖动窗口 · Alt + 拖动任意位置"; }
+        if (region is FrameworkElement element) { element.Cursor = Cursors.SizeAll; element.ToolTip = null; }
     }
     internal static bool CanStartDrag(DependencyObject? source, bool alt)
     {

@@ -176,7 +176,7 @@ public partial class MainWindow : Window
         LockButton.Background = settings.PositionLocked ? Ui.Brush("#254A40") : Brushes.Transparent;
         LockButton.ToolTip = settings.PositionLocked ? "位置已锁定 · 点击解锁" : "位置可移动 · 点击锁定";
         Grip.Cursor = settings.PositionLocked ? Cursors.Arrow : Cursors.SizeAll;
-        Grip.ToolTip = settings.PositionLocked ? "位置已锁定，请点击右侧小锁解锁" : "拖动移动 · Alt + 拖动任意位置";
+        Grip.ToolTip = null;
         AlignmentMenuButton.ToolTip = settings.PositionLocked ? "位置已锁定，请先点击小锁解锁" : "桌面左对齐 / 中对齐 / 右对齐";
     }
     public void ShowWidget()
