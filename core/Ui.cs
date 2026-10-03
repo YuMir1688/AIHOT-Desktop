@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -61,7 +61,8 @@ internal static class Ui
         {
             var homeBrand = new StackPanel { Orientation = Orientation.Horizontal };
             while (brand.Children.Count > 0) { var child = brand.Children[0]; brand.Children.RemoveAt(0); homeBrand.Children.Add(child); }
-            var homeButton = new Button { Content = homeBrand, ToolTip = "返回首页", Cursor = Cursors.Hand, Padding = new Thickness(0), BorderThickness = new Thickness(0), Background = Brushes.Transparent };
+            var homeButton = new Button { Content = homeBrand, Cursor = Cursors.Hand, Padding = new Thickness(0), BorderThickness = new Thickness(0), Background = Brushes.Transparent };
+            ToolTipService.SetIsEnabled(homeButton, false);
             homeButton.Click += (_, _) => home();
             WindowChrome.SetIsHitTestVisibleInChrome(homeButton, true);
             System.Windows.Automation.AutomationProperties.SetName(homeButton, "AIHOT 返回首页");
@@ -85,3 +86,5 @@ internal static class Ui
         window.PreviewKeyDown += (_, e) => { if (e.Key != Key.Escape) return; if (Keyboard.FocusedElement is TextBox text && text.Text.Length > 0) text.Clear(); else window.Close(); e.Handled = true; };
     }
 }
+
+

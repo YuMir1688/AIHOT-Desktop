@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Net;
@@ -35,7 +35,7 @@ public sealed class TiboWindow : Window
         Title="AIHOT · Tibo 重置监控";Width=1200;Height=750;MinWidth=800;MinHeight=500;WindowStartupLocation=WindowStartupLocation.CenterScreen;
         var root=new DockPanel {Margin=new Thickness(28,20,28,24)};
         var top=new DockPanel {Margin=new Thickness(0,0,0,18)};
-        var actions=new StackPanel {Orientation=Orientation.Horizontal};actions.Children.Add(Link("完整历史 ↗","https://aihot.news/codex-reset"));actions.Children.Add(refresh);DockPanel.SetDock(actions,Dock.Right);top.Children.Add(actions);top.Children.Add(Ui.Text("Tibo 重置监控",24));DockPanel.SetDock(top,Dock.Top);root.Children.Add(top);
+        var actions=new StackPanel {Orientation=Orientation.Horizontal};actions.Children.Add(refresh);DockPanel.SetDock(actions,Dock.Right);top.Children.Add(actions);top.Children.Add(Ui.Text("Tibo 重置监控",24));DockPanel.SetDock(top,Dock.Top);root.Children.Add(top);
         status.Margin=new Thickness(0,12,0,0);DockPanel.SetDock(status,Dock.Bottom);root.Children.Add(status);
         root.Children.Add(content);Ui.Shell(this,"Tibo 重置监控",root);
         try { saved=sampleJson==null?Storage.Read<Saved>("tibo-calendar-cache.json"):new Saved{Json=sampleJson};if(saved.Json.Length>0)data=TiboData.Parse(saved.Json); } catch { saved=new(); }
@@ -130,4 +130,5 @@ public sealed class TiboWindow : Window
         finally {busy=false;if(!closed)refresh.IsEnabled=true;}
     }
 }
+
 
