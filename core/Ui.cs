@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -30,7 +30,7 @@ internal static class Ui
     internal static TextBlock Text(string text, double size = 12, Brush? color = null) => new() { Text = text, FontSize = size, Foreground = color ?? Ink, TextWrapping = TextWrapping.Wrap, LineHeight = size * 1.65 };
     internal static Border Card(UIElement child, string background = "#151E2A", double padding = 20) => new() { Child = child, Background = Brush(background), BorderBrush = Line, BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(14), Padding = new Thickness(padding) };
     internal static Border Badge(string text) => new() { Child = Text(text, 10, Mint), Background = Brush("#1A3031"), CornerRadius = new CornerRadius(6), Padding = new Thickness(9, 3, 9, 3), HorizontalAlignment = HorizontalAlignment.Left };
-    internal static void Shell(Window window, string label, UIElement body)
+    internal static void Shell(Window window, string label, UIElement body, Action? home = null)
     {
         window.FontFamily = new FontFamily("Microsoft YaHei UI"); window.Foreground = Ink; window.Background = Brush("#0E141D"); window.WindowStyle = WindowStyle.None;
         window.Width = Math.Min(window.Width, Math.Max(window.MinWidth, SystemParameters.WorkArea.Width - 36));
@@ -41,6 +41,16 @@ internal static class Ui
         var brand = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center };
         brand.Children.Add(new Border { Width = 28, Height = 28, CornerRadius = new CornerRadius(8), Background = Mint, Child = new TextBlock { Text = "A", FontWeight = FontWeights.Bold, FontSize = 18, Foreground = Brush("#102C26"), HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center } });
         brand.Children.Add(new TextBlock { Text = "AI HOT", FontWeight = FontWeights.Bold, FontSize = 14, Margin = new Thickness(10, 0, 18, 0), VerticalAlignment = VerticalAlignment.Center });
+        if (home != null)
+        {
+            var homeBrand = new StackPanel { Orientation = Orientation.Horizontal };
+            while (brand.Children.Count > 0) { var child = brand.Children[0]; brand.Children.RemoveAt(0); homeBrand.Children.Add(child); }
+            var homeButton = new Button { Content = homeBrand, ToolTip = "返回首页", Cursor = Cursors.Hand, Padding = new Thickness(0), BorderThickness = new Thickness(0), Background = Brushes.Transparent };
+            homeButton.Click += (_, _) => home();
+            WindowChrome.SetIsHitTestVisibleInChrome(homeButton, true);
+            System.Windows.Automation.AutomationProperties.SetName(homeButton, "AIHOT 返回首页");
+            brand.Children.Add(homeButton);
+        }
         brand.Children.Add(new TextBlock { Text = " /  " + label, Foreground = Muted, FontSize = 11, VerticalAlignment = VerticalAlignment.Center }); header.Children.Add(brand);
         MakeDraggable(header);
         window.PreviewMouseLeftButtonDown += (_, e) =>
