@@ -78,19 +78,18 @@ public static class EditorialCard
             }
             else if(style==8)
             {
-                dc.DrawRectangle(ink,null,new Rect(left,42,58,58));
-                Centered(dc,T("AI",28,Brushes.White,54,true,1,"Arial"),new Rect(left,42,58,58));
-                dc.DrawText(T("新知观察",35,ink,390,true),new Point(126,39));
-                dc.DrawText(T("YuMir 的阅读室",12,muted,390),new Point(128,93));
+                var group=StackedMasthead(dc,"新知观察",35,ink,muted,126,48);
+                var mark=new Rect(left,group.Top+(group.Height-58)/2,58,58);
+                dc.DrawRectangle(ink,null,mark);
+                Centered(dc,T("AI",28,Brushes.White,54,true,1,"Arial"),mark);
                 Right(dc,"阅读 / 记录",11,muted,668,58);
                 dc.DrawLine(new Pen(ink,3),new Point(left,130),new Point(668,130));
                 dc.DrawLine(new Pen(ink,1),new Point(left,137),new Point(668,137));
             }
             else
             {
-                dc.DrawRoundedRectangle(accent,null,new Rect(left,45,4,57),2,2);
-                dc.DrawText(T("新知手记",36,ink,400,true),new Point(72,38));
-                dc.DrawText(T("YuMir 的阅读室",12,muted,390),new Point(74,93));
+                var group=StackedMasthead(dc,"新知手记",35,ink,muted,72,48);
+                dc.DrawRoundedRectangle(accent,null,new Rect(left,group.Top,3,group.Height),1.5,1.5);
                 dc.DrawEllipse(B(p.Panel),null,new Point(643,72),25,25);
                 Centered(dc,T("AI",20,accent,45,true,1,"Arial"),new Rect(618,47,50,50));
             }
@@ -216,6 +215,15 @@ public static class EditorialCard
         FlowDirection.LeftToRight, new Typeface(new FontFamily(family), FontStyles.Normal,
         bold ? FontWeights.Bold : FontWeights.Normal, FontStretches.Normal), size, color, 1.5)
         { MaxTextWidth = width, LineHeight = size * line };
+    private static Rect StackedMasthead(DrawingContext dc,string title,double size,Brush ink,Brush muted,double x,double top)
+    {
+        var heading=T(title,size,ink,390,true);var h=heading.BuildGeometry(new Point()).Bounds;
+        var credit=T("YuMir 的阅读室",12,muted,390);var c=credit.BuildGeometry(new Point()).Bounds;
+        dc.DrawText(heading,new Point(x-h.X,top-h.Y));
+        double creditTop=top+h.Height+10;
+        dc.DrawText(credit,new Point(x-c.X,creditTop-c.Y));
+        return new Rect(x,top,Math.Max(h.Width,c.Width),creditTop+c.Height-top);
+    }
     private static void Centered(DrawingContext dc,FormattedText text,Rect frame)
     {
         var bounds=text.BuildGeometry(new Point()).Bounds;
