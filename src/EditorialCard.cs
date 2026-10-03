@@ -1,4 +1,4 @@
-using System.Globalization;
+﻿using System.Globalization;
 using System.IO;
 using System.Windows;
 using System.Windows.Media;
@@ -23,7 +23,6 @@ public static class EditorialCard
                 var masthead = T("AI BRIEF", 44, ink, 390, true, 1.0, "Arial");
                 dc.DrawText(masthead, new Point(left, 48));
                 double creditY = AlignedCredit(dc, masthead, 48, ink);
-                Right(dc, "读一条，知新事。", 12, muted, 668, creditY + 26);
             }
             else if (style == 1)
             {
@@ -59,8 +58,7 @@ public static class EditorialCard
             {
                 dc.DrawRoundedRectangle(B(p.Panel),new Pen(B(p.Line),1),new Rect(left,38,616,78),8,8);
                 dc.DrawText(T(">_ AI LOG",32,accent,370,true,1,"Consolas"),new Point(left+18,47));
-                Right(dc,"YuMir / TECH NOTES",11,muted,648,51);
-                Right(dc,"READ / THINK / BUILD",10,muted,648,82);
+                Right(dc,"YuMir / 阅读室",12,muted,648,65);
                 dc.DrawText(T("SYSTEM / KNOWLEDGE FEED",9,muted,300,false,1,"Consolas"),new Point(left+20,92));
             }
             else if(style==6)
