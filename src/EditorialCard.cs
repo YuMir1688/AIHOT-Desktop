@@ -1,4 +1,4 @@
-﻿using System.Globalization;
+using System.Globalization;
 using System.IO;
 using System.Windows;
 using System.Windows.Media;
@@ -119,23 +119,30 @@ public static class EditorialCard
 
         var p = Palettes[style];
         Brush ink = B(p.Ink), muted = B(p.Muted), accent = B(p.Accent);
-        const double left = 52, width = 616, titleY = 200, footerY = 752;
-        double titleSize = title.Length <= 38 ? 48 : 43;
-        double bodySize = 25;
-        FormattedText heading = T(title, titleSize, ink, width, true, 1.32);
-        FormattedText body = T(summary, bodySize, ink, width, false, 1.62);
+        const double left = 52, titleY = 200;
+        double textLeft=style is 5 or 9 ? 72 : style==6 ? 66 : left;
+        double width=668-textLeft-(style is 5 or 9 ? 20 : 0);
+        double footerY=752;
+        double titleSize=(title.Length<=38?48:43)+(style==7?2:style is 5 or 8?-2:0);
+        double bodySize=style==8?24:25;
+        double titleLine=style is 2 or 8?1.24:1.32;
+        double bodyLine=style==8?1.5:style is 1 or 6?1.7:1.62;
+        double gap=style is 5 or 9?54:style==8?44:52;
+        FormattedText heading = T(title, titleSize, ink, width, true, titleLine);
+        FormattedText body = T(summary, bodySize, ink, width, false, bodyLine);
         double bodyY = 0, bodyEnd = 0;
         bool fits = false;
         for (int step = 0; step < 12; step++)
         {
-            heading = T(title, Math.Max(32, titleSize - step), ink, width, true, 1.32);
-            body = T(summary, Math.Max(22, bodySize - step * .35), ink, width, false, 1.62);
-            bodyY = titleY + heading.Height + 57;
+            heading = T(title, Math.Max(32, titleSize - step), ink, width, true, titleLine);
+            body = T(summary, Math.Max(22, bodySize - step * .35), ink, width, false, bodyLine);
+            bodyY = titleY + heading.Height + gap;
             bodyEnd = summary.Length == 0 ? titleY + heading.Height : bodyY + body.Height;
             if (bodyEnd <= footerY - 32) { fits = true; break; }
         }
         if (!fits) throw new InvalidOperationException("文字较多，当前 3:4 卡片放不下。请精简标题或摘要后再试，正文不会被裁切。");
 
+        footerY=Math.Clamp(bodyEnd+64,704,752);
         var qr = Qr(item.Links.Original, out double qrSize);
         var visual = new DrawingVisual();
         RenderOptions.SetBitmapScalingMode(visual, BitmapScalingMode.NearestNeighbor);
@@ -147,18 +154,21 @@ public static class EditorialCard
             dc.DrawText(T(item.CategoryLabel, 14, accent, 300, true), new Point(left + 16, 152));
             var date = (item.PublishedAt ?? item.DiscoveredAt).ToOffset(TimeSpan.FromHours(8));
             Right(dc, date.ToString("yyyy.MM.dd", CultureInfo.InvariantCulture), 14, muted, 668, 152);
-            dc.DrawText(heading, new Point(left, titleY));
+            if(style is 5 or 9)dc.DrawRoundedRectangle(B(p.Panel),null,new Rect(left,titleY-16,616,Math.Max(100,bodyEnd-titleY+40)),style==5?6:12,style==5?6:12);
+            if(style==6)dc.DrawLine(new Pen(B(p.Line),2),new Point(left,titleY+5),new Point(left,bodyEnd));
+            if(style==8)dc.DrawLine(new Pen(ink,1),new Point(left,titleY-16),new Point(668,titleY-16));
+            dc.DrawText(heading, new Point(textLeft, titleY));
             if (summary.Length > 0)
             {
                 double labelY = bodyY - 34;
 
                 bool excerpt = !string.IsNullOrEmpty(item.Summary) && item.Summary.Trim().Length > summary.Length && item.Summary.Trim().StartsWith(summary, StringComparison.Ordinal);
-                var label = T(excerpt ? "摘要节选" : "内容导读", 13, muted, width - 40);
-                var labelOrigin = new Point(left + 34, labelY);
+                var label = T(excerpt ? "摘要节选" : "内容导读", 13, muted, width - 34);
+                var labelOrigin = new Point(textLeft + 28, labelY);
                 var glyphBounds = label.BuildGeometry(labelOrigin).Bounds;
-                dc.DrawRectangle(accent, null, new Rect(left, glyphBounds.Top + glyphBounds.Height / 2 - 1, 23, 2));
+                dc.DrawRectangle(accent, null, new Rect(textLeft, glyphBounds.Top + glyphBounds.Height / 2 - 1, 18, 2));
                 dc.DrawText(label, labelOrigin);
-                dc.DrawText(body, new Point(left, bodyY));
+                dc.DrawText(body, new Point(textLeft, bodyY));
             }
             // The QR bitmap includes its quiet zone and uses exactly 3 physical pixels per module.
             dc.DrawLine(new Pen(B(p.Line), 1), new Point(left, footerY), new Point(668, footerY));
@@ -166,19 +176,19 @@ public static class EditorialCard
             dc.DrawRectangle(Brushes.White, null, new Rect(qrX, qrY, qrSize, qrSize));
             dc.DrawImage(qr, new Rect(qrX, qrY, qrSize, qrSize));
             double sourceWidth = qrX - left - 30;
-            dc.DrawText(T("阅读完整内容", 24, ink, sourceWidth, true), new Point(left, footerY + 30));
+            dc.DrawText(T("扫码阅读原文", 21, ink, sourceWidth, true), new Point(left, footerY + 24));
             string sourceName = item.Source.Name.Trim();
             if (sourceName.StartsWith("X:", StringComparison.OrdinalIgnoreCase) ||
                 sourceName.StartsWith("X：", StringComparison.OrdinalIgnoreCase))
                 sourceName = sourceName[2..].TrimStart();
             var source = T(sourceName, 14, muted, sourceWidth);
             source.MaxLineCount = 2; source.Trimming = TextTrimming.CharacterEllipsis;
-            dc.DrawText(source, new Point(left, footerY + 77));
+            dc.DrawText(source, new Point(left, footerY + 62));
             var host = T(uri.Host, 12, muted, sourceWidth, false, 1.3, "Arial");
             host.MaxLineCount = 1; host.Trimming = TextTrimming.CharacterEllipsis;
-            dc.DrawText(host, new Point(left, footerY + 125));
-            dc.DrawText(T("YUMIR / 每天一点AI新知", 11, muted, 410), new Point(left, 921));
-            Right(dc, "扫码阅读原文 ↗", 11, muted, 668, 921);
+            dc.DrawText(host, new Point(left, footerY + 107));
+            dc.DrawText(T("YuMir 的阅读室", 12, muted, 410), new Point(left, 921));
+            Right(dc, Names[style], 11, muted, 668, 921);
         }
         var image = new RenderTargetBitmap(1080, 1440, 144, 144, PixelFormats.Pbgra32);
         image.Render(visual); image.Freeze();
@@ -215,5 +225,6 @@ public static class EditorialCard
         return y;
     }
 }
+
 
 
