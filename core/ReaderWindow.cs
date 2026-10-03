@@ -32,7 +32,7 @@ public sealed class ReaderWindow : Window
         this.items = items; Title = "AIHOT · 阅读面板"; Width = 1140; Height = 800; MinWidth = 880; MinHeight = 550; WindowStartupLocation = WindowStartupLocation.CenterScreen;
         var root = new Grid(); root.RowDefinitions.Add(new RowDefinition { Height = new GridLength(68) }); root.RowDefinitions.Add(new RowDefinition());
         var intro = new Grid { Margin = new Thickness(28, 19, 30, 18), Background = Brushes.Transparent }; Ui.MakeDraggable(intro); intro.ColumnDefinitions.Add(new ColumnDefinition()); intro.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-        var heading = new StackPanel { Orientation = Orientation.Horizontal }; heading.Children.Add(Ui.Text("你的 AI 信息视野", 20)); intro.Children.Add(heading);
+        var heading = new StackPanel { Orientation = Orientation.Horizontal }; var readerHeading = Ui.Text("你的 AI 信息视野", 18); readerHeading.FontWeight = FontWeights.Normal; readerHeading.LineHeight = 28; heading.Children.Add(readerHeading); intro.Children.Add(heading);
         root.Children.Add(intro);
         var columns = new Grid(); columns.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(340) }); columns.ColumnDefinitions.Add(new ColumnDefinition()); Grid.SetRow(columns, 1); root.Children.Add(columns);
         var reportHost = new Border { Visibility = Visibility.Collapsed }; Grid.SetRow(reportHost, 1); root.Children.Add(reportHost);
