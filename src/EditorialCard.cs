@@ -20,7 +20,6 @@ public static class EditorialCard
             // Each edition has a distinct masthead; content and source keep the same reading order.
             if (style == 0)
             {
-                dc.DrawRectangle(accent, null, new Rect(52, 0, 44, 9));
                 var masthead = T("AI BRIEF", 48, ink, 390, true, 1.0, "Arial");
                 dc.DrawText(masthead, new Point(left - 2, 46));
                 double creditY = AlignedCredit(dc, masthead, 46, ink);
@@ -174,3 +173,4 @@ public static class EditorialCard
         return y;
     }
 }
+
