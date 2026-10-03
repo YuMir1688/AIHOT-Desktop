@@ -1,4 +1,4 @@
-using System.IO;
+﻿using System.IO;
 using System.Text.Json;
 using System.Windows.Media.Imaging;
 using AiHot;
@@ -90,6 +90,11 @@ static class Program
             var panels=Walk(readerWindow).Where(o=>o.GetType().Name=="ReportPanel").ToArray();Require(panels.Length==3,"Three retained report panels");
             var timer=System.Diagnostics.Stopwatch.StartNew();for(int cycle=0;cycle<5;cycle++)for(int n=0;n<4;n++)SelectTab(n);
             Require(Walk(readerWindow).Where(o=>o.GetType().Name=="ReportPanel").SequenceEqual(panels),"Repeated tab switches reuse panels");
+            var home=Walk(readerWindow).OfType<System.Windows.Controls.Button>().Single(b=>System.Windows.Automation.AutomationProperties.GetName(b)=="AIHOT 返回首页");
+            home.RaiseEvent(new System.Windows.RoutedEventArgs(System.Windows.Controls.Button.ClickEvent));
+            Require(panels.All(p=>System.Windows.UIElement.VisibilityProperty.GetMetadata(p.GetType())!=null && !((System.Windows.UIElement)p).IsVisible),"Home hides report content");
+            var monitor=Walk(readerWindow).OfType<System.Windows.Controls.Button>().Single(b=>b.Content as string=="重置日历");
+            Require(monitor.IsEnabled,"Calendar entry available from reader");
             Require(File.GetLastWriteTimeUtc(file)==before,"Tab switching never rewrites history");
             Console.WriteLine($"PASS cached panels, 20 tab switches in {timer.ElapsedMilliseconds} ms before display layout, no archive writes");readerWindow.Close();return;
         }

@@ -30,8 +30,23 @@ internal static class Ui
     internal static TextBlock Text(string text, double size = 12, Brush? color = null) => new() { Text = text, FontSize = size, Foreground = color ?? Ink, TextWrapping = TextWrapping.Wrap, LineHeight = size * 1.65 };
     internal static Border Card(UIElement child, string background = "#151E2A", double padding = 20) => new() { Child = child, Background = Brush(background), BorderBrush = Line, BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(14), Padding = new Thickness(padding) };
     internal static Border Badge(string text) => new() { Child = Text(text, 10, Mint), Background = Brush("#1A3031"), CornerRadius = new CornerRadius(6), Padding = new Thickness(9, 3, 9, 3), HorizontalAlignment = HorizontalAlignment.Left };
+    internal static void ReturnHome(Window source)
+    {
+        if (source is ReaderWindow reader) { reader.GoHome(); return; }
+        if (Application.Current.MainWindow is not MainWindow main) return;
+        var parent = source.Owner;
+        source.Close();
+        while (parent != null && parent is not ReaderWindow && parent != main)
+        {
+            var next = parent.Owner; parent.Close(); parent = next;
+        }
+        main.Dispatcher.BeginInvoke(new Action(main.NavigateHome));
+    }
     internal static void Shell(Window window, string label, UIElement body, Action? home = null)
     {
+        window.UseLayoutRounding = true; window.SnapsToDevicePixels = true;
+        TextOptions.SetTextFormattingMode(window, TextFormattingMode.Display);
+        TextOptions.SetTextRenderingMode(window, TextRenderingMode.ClearType);
         window.FontFamily = new FontFamily("Microsoft YaHei UI"); window.Foreground = Ink; window.Background = Brush("#0E141D"); window.WindowStyle = WindowStyle.None;
         window.Width = Math.Min(window.Width, Math.Max(window.MinWidth, SystemParameters.WorkArea.Width - 36));
         window.Height = Math.Min(window.Height, Math.Max(window.MinHeight, SystemParameters.WorkArea.Height - 36));
@@ -41,6 +56,7 @@ internal static class Ui
         var brand = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center };
         brand.Children.Add(new Border { Width = 28, Height = 28, CornerRadius = new CornerRadius(8), Background = Mint, Child = new TextBlock { Text = "A", FontWeight = FontWeights.Bold, FontSize = 18, Foreground = Brush("#102C26"), HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center } });
         brand.Children.Add(new TextBlock { Text = "AI HOT", FontWeight = FontWeights.Bold, FontSize = 14, Margin = new Thickness(10, 0, 18, 0), VerticalAlignment = VerticalAlignment.Center });
+        home ??= () => ReturnHome(window);
         if (home != null)
         {
             var homeBrand = new StackPanel { Orientation = Orientation.Horizontal };

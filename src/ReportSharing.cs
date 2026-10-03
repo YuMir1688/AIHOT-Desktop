@@ -1,4 +1,4 @@
-using System.Reflection;
+﻿using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Controls;
@@ -51,7 +51,7 @@ public static class ReportSharing
     {
         ScrollbarAppearance.Install();
         typeof(NewsItem).Assembly.GetType("AiHot.Ui")!.GetMethod("Shell", BindingFlags.Static | BindingFlags.NonPublic)!
-            .Invoke(null, [window, "分享报告", body]);
+            .Invoke(null, [window, window is ReportPicker ? "挑选分享资讯" : "分享报告", body, null]);
     }
 }
 

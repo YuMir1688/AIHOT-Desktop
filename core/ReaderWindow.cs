@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
@@ -8,6 +8,8 @@ using System.Windows.Input;
 namespace AiHot;
 public sealed class ReaderWindow : Window
 {
+    private Action? returnHome;
+    internal void GoHome() => returnHome?.Invoke();
     private List<NewsItem> items;
     private readonly StackPanel results = new(), detail = new() { Margin = new Thickness(28, 24, 28, 24) };
     private readonly TextBlock positionLabel = Ui.Text("", 11, Ui.Muted);
@@ -50,6 +52,9 @@ public sealed class ReaderWindow : Window
             };
             sectionButtons.Add(sectionButton); sections.Children.Add(sectionButton);
         }
+        returnHome = () => sectionButtons[0].RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+        var monitor = new Button { Content = "重置日历", Padding = new Thickness(12,6,12,6), Margin = new Thickness(10,0,0,0), ToolTip = "打开 Tibo 重置监控" };
+        monitor.Click += (_,_) => TiboWindow.Open(); sections.Children.Add(monitor);
         var left = new DockPanel { Margin = new Thickness(26, 0, 16, 20) }; var header = new StackPanel(); header.Children.Add(Ui.Text("搜索当前资讯  ·  Ctrl+F", 10, Ui.Muted));
         var searchRow = new Grid { Margin = new Thickness(0, 7, 0, 10) }; search.Height = 40; search.VerticalContentAlignment = VerticalAlignment.Center; search.Padding = new Thickness(12, 8, 36, 8); searchRow.Children.Add(search);
         var placeholder = Ui.Text("搜索标题、来源或关键词…", 12, Ui.Muted); placeholder.Margin = new Thickness(13, 0, 32, 0); placeholder.VerticalAlignment = VerticalAlignment.Center; placeholder.IsHitTestVisible = false; searchRow.Children.Add(placeholder);

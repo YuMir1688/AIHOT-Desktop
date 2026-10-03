@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -339,6 +339,10 @@ public partial class MainWindow : Window
         scroll += settings.Speed * delta * Math.Clamp((dwell - 2) / .7, 0, 1);
         Shift.X = -Math.Min(scroll, overflow);
         if (scroll > overflow + settings.Speed * 2.5) Advance();
+    }
+    internal void NavigateHome()
+    {
+        OpenReader(); reader?.Show(); reader?.GoHome(); reader?.Activate();
     }
     internal void OpenReader()
     {
