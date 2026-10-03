@@ -1,4 +1,4 @@
-using System.Globalization;
+﻿using System.Globalization;
 using System.IO;
 using System.Windows;
 using System.Windows.Media;
@@ -78,19 +78,21 @@ public static class EditorialCard
             }
             else if(style==8)
             {
-                dc.DrawLine(new Pen(ink,3),new Point(left,35),new Point(668,35));
-                dc.DrawText(T("THE AI PAPER",34,ink,420,true,1,"Georgia"),new Point(left,48));
-                Right(dc,"YuMir 阅读室",12,ink,668,54);
-                Right(dc,"观察 / 记录 / 思考",10,muted,668,86);
-                dc.DrawLine(new Pen(ink,1),new Point(left,119),new Point(668,119));
+                dc.DrawRectangle(ink,null,new Rect(left,42,58,58));
+                dc.DrawText(T("AI",28,Brushes.White,54,true,1,"Arial"),new Point(left+12,53));
+                dc.DrawText(T("新知观察",35,ink,390,true),new Point(126,39));
+                dc.DrawText(T("YuMir 的阅读室",12,muted,390),new Point(128,93));
+                Right(dc,"阅读 / 记录",11,muted,668,58);
+                dc.DrawLine(new Pen(ink,3),new Point(left,130),new Point(668,130));
+                dc.DrawLine(new Pen(ink,1),new Point(left,137),new Point(668,137));
             }
             else
             {
-                dc.DrawRoundedRectangle(B(p.Panel),null,new Rect(left,38,616,78),10,10);
-                dc.DrawText(T("灵感便签",34,ink,370,true),new Point(left+18,44));
-                dc.DrawText(T("YuMir / 把新发现留在这里",12,muted,390),new Point(left+20,92));
-                dc.DrawRoundedRectangle(accent,null,new Rect(594,52,55,48),7,7);
-                dc.DrawText(T("AI",23,Brushes.White,45,true,1,"Arial"),new Point(607,63));
+                dc.DrawRoundedRectangle(accent,null,new Rect(left,45,4,57),2,2);
+                dc.DrawText(T("新知手记",36,ink,400,true),new Point(72,38));
+                dc.DrawText(T("YuMir 的阅读室",12,muted,390),new Point(74,93));
+                dc.DrawEllipse(B(p.Panel),null,new Point(643,72),25,25);
+                dc.DrawText(T("AI",20,accent,45,true,1,"Arial"),new Point(633,59));
             }
             if (style != 2 && style != 8) dc.DrawLine(new Pen(B(p.Line), 1), new Point(left, 132), new Point(668, 132));
     }
@@ -103,8 +105,8 @@ public static class EditorialCard
         new("#101B20", "#E3F3ED", "#9CB3AA", "#9EF0A3", "#31443D", "#192A25"),
         new("#F1ECFA", "#322947", "#786C8E", "#8058B5", "#D9CCE9", "#E6DCF3"),
         new("#FFFCEB", "#292C20", "#787A61", "#887323", "#E4E1C8", "#F5F0CB"),
-        new("#FAFAF7", "#212421", "#73766F", "#444941", "#D6D8D0", "#EEEFE9"),
-        new("#FFF4EC", "#4A302B", "#94796C", "#B9604B", "#ECD3C5", "#F6DFD0")
+        new("#FAFAF8", "#202220", "#666963", "#202220", "#CACEC5", "#EEEFE9"),
+        new("#FFF8F3", "#46332F", "#856C63", "#BF654F", "#ECDAD0", "#F9E4DB")
     ];
 
     public static BitmapSource Render(NewsItem item, string title, string summary, int style)
@@ -120,8 +122,8 @@ public static class EditorialCard
         var p = Palettes[style];
         Brush ink = B(p.Ink), muted = B(p.Muted), accent = B(p.Accent);
         const double left = 52, titleY = 200;
-        double textLeft=style is 5 or 9 ? 72 : style==6 ? 66 : left;
-        double width=668-textLeft-(style is 5 or 9 ? 20 : 0);
+        double textLeft=style == 5 ? 72 : style==6 ? 66 : left;
+        double width=668-textLeft-(style == 5 ? 20 : 0);
         double footerY=752;
         double titleSize=(title.Length<=38?48:43)+(style==7?2:style is 5 or 8?-2:0);
         double bodySize=style==8?24:25;
@@ -154,9 +156,9 @@ public static class EditorialCard
             dc.DrawText(T(item.CategoryLabel, 14, accent, 300, true), new Point(left + 16, 152));
             var date = (item.PublishedAt ?? item.DiscoveredAt).ToOffset(TimeSpan.FromHours(8));
             Right(dc, date.ToString("yyyy.MM.dd", CultureInfo.InvariantCulture), 14, muted, 668, 152);
-            if(style is 5 or 9)dc.DrawRoundedRectangle(B(p.Panel),null,new Rect(left,titleY-16,616,Math.Max(100,bodyEnd-titleY+40)),style==5?6:12,style==5?6:12);
+            if(style==5)dc.DrawRoundedRectangle(B(p.Panel),null,new Rect(left,titleY-16,616,Math.Max(100,bodyEnd-titleY+40)),style==5?6:12,style==5?6:12);
             if(style==6)dc.DrawLine(new Pen(B(p.Line),2),new Point(left,titleY+5),new Point(left,bodyEnd));
-            if(style==8)dc.DrawLine(new Pen(ink,1),new Point(left,titleY-16),new Point(668,titleY-16));
+            if(style==9)dc.DrawLine(new Pen(B(p.Line),1),new Point(left,bodyEnd+24),new Point(left+100,bodyEnd+24));
             dc.DrawText(heading, new Point(textLeft, titleY));
             if (summary.Length > 0)
             {
