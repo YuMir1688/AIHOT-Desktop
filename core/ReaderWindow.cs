@@ -8,12 +8,44 @@ using System.Windows.Input;
 namespace AiHot;
 public sealed class ReaderWindow : Window
 {
+    private Grid? readerRoot;
+    private readonly Border embeddedHost=new() { Visibility=Visibility.Collapsed };
+    private readonly Stack<(Window Page,UIElement View)> embeddedPages=new();
+    private readonly Dictionary<UIElement,Visibility> savedVisibility=new();
+    public void ShowEmbeddedPage(Window page,string label,Action? completed=null)
+    {
+        if(readerRoot==null)return;
+        if(embeddedPages.Count==0) {
+            savedVisibility.Clear();foreach(UIElement child in readerRoot.Children)if(child!=embeddedHost){savedVisibility[child]=child.Visibility;child.Visibility=Visibility.Collapsed;}
+        }
+        var body=Ui.DetachPageBody(page);
+        var view=new DockPanel();var header=new DockPanel {Margin=new Thickness(24,14,24,0)};
+        var back=new Button {Content=embeddedPages.Count==0?"← 返回阅读":"← 返回分享",Padding=new Thickness(12,7,12,7),Margin=new Thickness(0,0,14,0)};
+        back.Click+=(_,_)=>page.Close();header.Children.Add(back);header.Children.Add(Ui.Text(label,18));DockPanel.SetDock(header,Dock.Top);view.Children.Add(header);view.Children.Add(body);
+        embeddedHost.Child=null;embeddedPages.Push((page,view));embeddedHost.Child=view;embeddedHost.Visibility=Visibility.Visible;
+        page.Closed+=(_,_)=>{
+            if(embeddedPages.Count==0 || embeddedPages.Peek().Page!=page)return;
+            embeddedHost.Child=null;embeddedPages.Pop();completed?.Invoke();
+            if(embeddedPages.Count>0)embeddedHost.Child=embeddedPages.Peek().View;
+            else {embeddedHost.Visibility=Visibility.Collapsed;foreach(var entry in savedVisibility)entry.Key.Visibility=entry.Value;savedVisibility.Clear();}
+        };
+    }
+    internal bool BackEmbeddedPage()
+    {
+        if(embeddedPages.Count==0)return false;
+        embeddedPages.Peek().Page.Close();return true;
+    }
+    private bool CloseEmbeddedPages()
+    {
+        while(embeddedPages.Count>0){var page=embeddedPages.Peek().Page;page.Close();if(embeddedPages.Count>0 && embeddedPages.Peek().Page==page)return false;}
+        return true;
+    }
     private readonly Border calendarHost = new() { Visibility=Visibility.Collapsed };
     private TiboPanel? calendar;
     private Action? showCalendar;
     internal void ShowCalendar() => showCalendar?.Invoke();
     private Action? returnHome;
-    internal void GoHome() => returnHome?.Invoke();
+    internal void GoHome() { if(CloseEmbeddedPages())returnHome?.Invoke(); }
     private List<NewsItem> items;
     private readonly StackPanel results = new(), detail = new() { Margin = new Thickness(28, 24, 28, 24) };
     private readonly TextBlock positionLabel = Ui.Text("", 11, Ui.Muted);
@@ -34,14 +66,15 @@ public sealed class ReaderWindow : Window
     {
         smoothList = new SmoothScroll(listScroll); smoothArticle = new SmoothScroll(articleScroll);
         this.items = items; Title = "AIHOT · 阅读面板"; Width = 1140; Height = 800; MinWidth = 880; MinHeight = 550; WindowStartupLocation = WindowStartupLocation.CenterScreen;
-        var root = new Grid(); root.RowDefinitions.Add(new RowDefinition { Height = new GridLength(68) }); root.RowDefinitions.Add(new RowDefinition());
+        var root = new Grid();readerRoot=root; root.RowDefinitions.Add(new RowDefinition { Height = new GridLength(68) }); root.RowDefinitions.Add(new RowDefinition());
         var intro = new Grid { Margin = new Thickness(28, 19, 30, 18), Background = Brushes.Transparent }; Ui.MakeDraggable(intro); intro.ColumnDefinitions.Add(new ColumnDefinition()); intro.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
         var heading = new StackPanel { Orientation = Orientation.Horizontal }; var readerHeading = Ui.Text("你的 AI 信息视野", 18); readerHeading.FontWeight = FontWeights.Normal; readerHeading.LineHeight = 28; heading.Children.Add(readerHeading); intro.Children.Add(heading);
         root.Children.Add(intro);
         var columns = new Grid(); columns.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(340) }); columns.ColumnDefinitions.Add(new ColumnDefinition()); Grid.SetRow(columns, 1); root.Children.Add(columns);
         var reportHost = new Border { Visibility = Visibility.Collapsed }; Grid.SetRow(reportHost, 1); root.Children.Add(reportHost);
         Grid.SetRow(calendarHost,1);root.Children.Add(calendarHost);
-        Closed+=(_,_)=>calendar?.Stop();
+        Grid.SetRow(embeddedHost,0);Grid.SetRowSpan(embeddedHost,2);root.Children.Add(embeddedHost);
+        Closed+=(_,_)=>{CloseEmbeddedPages();calendar?.Stop();};
         var sections = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center }; Grid.SetColumn(sections, 1); intro.Children.Add(sections);
         var sectionButtons = new List<Button>();
         for (int section = 0; section < 4; section++)
@@ -138,7 +171,7 @@ public sealed class ReaderWindow : Window
             var box = Ui.Card(reason, "#162B2C", 18); box.BorderBrush = Ui.Brush("#2A4845"); box.Margin = new Thickness(0, 0, 0, 24); detail.Children.Add(box);
         }
         var links = new StackPanel { Orientation = Orientation.Horizontal };
-        var share = new Button { Content = "分享", Padding = new Thickness(15, 11, 15, 11), Margin = new Thickness(0, 0, 8, 0) }; share.Click += (_, _) => { new ShareWindow(n) { Owner = this }.ShowDialog(); }; links.Children.Add(share);
+        var share = new Button { Content = "分享", Padding = new Thickness(15, 11, 15, 11), Margin = new Thickness(0, 0, 8, 0) }; share.Click += (_, _) => { ShowEmbeddedPage(new ShareWindow(n),"制作分享卡片"); }; links.Children.Add(share);
         var original = new Button { Content = "阅读原文  ↗", Foreground = Ui.Brush("#103B2E"), FontWeight = FontWeights.SemiBold, Background = Ui.Mint, Padding = new Thickness(20, 11, 20, 11), Margin = new Thickness(0, 0, 10, 0) }; original.Click += (_, _) => MainWindow.OpenUrl(n.Links.Original); links.Children.Add(original);
         original.Margin = new Thickness(0); articleActions.Children.Clear(); articleActions.Children.Add(links);
         detail.Children.Add(Ui.Text("资讯整理 · AIHOT", 10, Ui.Muted)); var credit = Ui.Text("桌面体验策划｜YuMir", 10, Ui.Brush("#637889")); credit.Margin = new Thickness(0, 6, 0, 0); detail.Children.Add(credit);

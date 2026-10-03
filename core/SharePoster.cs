@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Globalization;
 using System.IO;
 using System.Windows;
@@ -166,7 +166,7 @@ internal sealed class ShareWindow : Window
             button.Click += (_, _) => { selectedStyle = choice; PaintStyle(); Generate(); }; styleButtons.Add(button); styles.Children.Add(button);
         } PaintStyle(); generate.Click += (_, _) => Generate();
         copy.Click += (_, _) => { try { if (poster != null) { Clipboard.SetImage(poster); status.Text = "图片已复制，可粘贴分享。"; } } catch { status.Text = "剪贴板暂时被占用，请重试或保存 PNG。"; } };
-        save.Click += (_, _) => { var dialog = new Microsoft.Win32.SaveFileDialog { Filter = "PNG 图片|*.png", FileName = "YuMir-AIHOT-" + DateTime.Now.ToString("yyyyMMdd-HHmmss") + ".png", DefaultExt = ".png" }; if (dialog.ShowDialog(this) == true && poster != null) { try { SharePoster.Save(poster, dialog.FileName); status.Text = "已保存：" + dialog.FileName; } catch (Exception e) { status.Text = "保存失败：" + e.Message; } } };
+        save.Click += (_, _) => { var dialog = new Microsoft.Win32.SaveFileDialog { Filter = "PNG 图片|*.png", FileName = "YuMir-AIHOT-" + DateTime.Now.ToString("yyyyMMdd-HHmmss") + ".png", DefaultExt = ".png" }; if (dialog.ShowDialog(Ui.OwnerFor(this)) == true && poster != null) { try { SharePoster.Save(poster, dialog.FileName); status.Text = "已保存：" + dialog.FileName; } catch (Exception e) { status.Text = "保存失败：" + e.Message; } } };
         Ui.Shell(this, "分享海报", root); Generate();
     }
 }

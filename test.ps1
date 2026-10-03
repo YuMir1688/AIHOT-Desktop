@@ -1,4 +1,4 @@
-param([string]$Dotnet='dotnet')
+﻿param([string]$Dotnet='dotnet')
 $ErrorActionPreference='Stop'
 Set-Location $PSScriptRoot
 & $Dotnet build modules/HotTests/Test.csproj -c Release
@@ -13,3 +13,6 @@ Copy-Item artifacts/app/AIHOT.Desktop.dll tools/bin/Release/net10.0-windows/AIHO
 if($LASTEXITCODE -ne 0){throw 'Share rendering integration failed'}
 & $Dotnet tools/bin/Release/net10.0-windows/CardTools.dll tibo-test artifacts/tibo-preview.png
 if($LASTEXITCODE -ne 0){throw 'Tibo monitor tests failed'}
+
+& $Dotnet tools/bin/Release/net10.0-windows/CardTools.dll embedded-share-test artifacts/embedded-share-preview.png
+if($LASTEXITCODE -ne 0){throw "Embedded sharing navigation tests failed"}

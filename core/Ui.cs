@@ -30,6 +30,14 @@ internal static class Ui
     internal static TextBlock Text(string text, double size = 12, Brush? color = null) => new() { Text = text, FontSize = size, Foreground = color ?? Ink, TextWrapping = TextWrapping.Wrap, FontWeight = size >= 18 ? FontWeights.SemiBold : FontWeights.Normal, LineHeight = size * (size >= 18 ? 1.4 : 1.65) };
     internal static Border Card(UIElement child, string background = "#151E2A", double padding = 20) => new() { Child = child, Background = Brush(background), BorderBrush = Line, BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(12), Padding = new Thickness(padding) };
     internal static Border Badge(string text) => new() { Child = Text(text, 10, Mint), Background = Brush("#1A3031"), CornerRadius = new CornerRadius(6), Padding = new Thickness(9, 3, 9, 3), HorizontalAlignment = HorizontalAlignment.Left };
+    private static readonly DependencyProperty PageBodyProperty = DependencyProperty.RegisterAttached("PageBody",typeof(UIElement),typeof(Ui));
+    internal static UIElement DetachPageBody(Window page)
+    {
+        var body=(UIElement)page.GetValue(PageBodyProperty);
+        if(body is FrameworkElement element && element.Parent is Border border)border.Child=null;
+        return body;
+    }
+    internal static Window OwnerFor(Window page) => Window.GetWindow((DependencyObject?)page.GetValue(PageBodyProperty) ?? page) ?? page;
     internal static void ReturnHome(Window source)
     {
         if (source is ReaderWindow reader) { reader.GoHome(); return; }
@@ -44,6 +52,7 @@ internal static class Ui
     }
     internal static void Shell(Window window, string label, UIElement body, Action? home = null)
     {
+        window.SetValue(PageBodyProperty,body);
         window.UseLayoutRounding = true; window.SnapsToDevicePixels = true;
         TextOptions.SetTextFormattingMode(window, TextFormattingMode.Display);
         TextOptions.SetTextRenderingMode(window, TextRenderingMode.ClearType);
@@ -88,7 +97,7 @@ internal static class Ui
         var close = new Button { Content = "×", Width = 32, Height = 30, Padding = new Thickness(0), FontSize = 20, Background = Brushes.Transparent, ToolTip = "关闭" }; close.Click += (_, _) => window.Close(); controls.Children.Add(minimize); controls.Children.Add(close); Grid.SetColumn(controls, 1); header.Children.Add(controls); root.Children.Add(header);
         var content = new Border { BorderBrush = Line, BorderThickness = new Thickness(0, 1, 0, 0), Child = body }; Grid.SetRow(content, 1); root.Children.Add(content);
         window.Content = new Border { BorderBrush = Brush("#354254"), BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(12), Child = root };
-        window.PreviewKeyDown += (_, e) => { if (e.Key != Key.Escape) return; if (Keyboard.FocusedElement is TextBox text && text.Text.Length > 0) text.Clear(); else window.Close(); e.Handled = true; };
+        window.PreviewKeyDown += (_, e) => { if (e.Key != Key.Escape) return; if(window is ReaderWindow reader && reader.BackEmbeddedPage()){e.Handled=true;return;} if (Keyboard.FocusedElement is TextBox text && text.Text.Length > 0) text.Clear(); else window.Close(); e.Handled = true; };
     }
 }
 

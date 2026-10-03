@@ -33,14 +33,22 @@ public static class ReportSharing
             {
                 try
                 {
-                    var window = new ReportShareWindow(current.Snapshot) { Owner = Window.GetWindow(panel), WindowStartupLocation = WindowStartupLocation.CenterOwner };
-                    window.Show();
+                    var window = new ReportShareWindow(current.Snapshot);
+                    Navigate(Window.GetWindow(panel)!,window,"分享"+current.Snapshot.Name);
                 }
                 catch (Exception ex) { MessageBox.Show(Window.GetWindow(panel), "暂时无法打开分享窗口：" + ex.Message, "分享报告"); }
             };
         }
         state.Snapshot = new ReportSnapshot(period, start, end, startedAt, items.Select(ReportSnapshot.Copy).ToArray());
         state.Button.ToolTip = $"分享{state.Snapshot.Name} · {state.Snapshot.Range}";
+    }
+    internal static Window DialogOwner(Window page) => (Window)typeof(NewsItem).Assembly.GetType("AiHot.Ui")!.GetMethod("OwnerFor",BindingFlags.Static|BindingFlags.NonPublic)!.Invoke(null,[page])!;
+    internal static void Navigate(Window host,Window page,string label,Action? completed=null)
+    {
+        var reader=DialogOwner(host);
+        var method=reader.GetType().GetMethod("ShowEmbeddedPage");
+        if(method==null)throw new InvalidOperationException("请从阅读室打开分享页面");
+        method.Invoke(reader,[page,label,completed]);
     }
     internal static Brush Brush(string hex)
     {
@@ -175,11 +183,12 @@ public sealed class ReportShareWindow : Window
         editing.Children.Add(intro);
         var adjust = ActionButton("调整分享资讯");
         adjust.Click += (_, _) => {
-            var picker = new ReportPicker(entries.Select(e => new ReportPicker.Choice(e.Item, e.Selected))) { Owner = this, WindowStartupLocation = WindowStartupLocation.CenterOwner };
-            picker.ShowDialog();
-            if (!picker.Accepted) return;
-            entries.Clear(); entries.AddRange(picker.Choices.Select(c => new Entry(c.Item, c.Selected)));
-            Counts(); Dirty();
+            var picker = new ReportPicker(entries.Select(e => new ReportPicker.Choice(e.Item, e.Selected)));
+            ReportSharing.Navigate(this,picker,"挑选分享资讯",()=>{
+                if (!picker.Accepted) return;
+                entries.Clear(); entries.AddRange(picker.Choices.Select(c => new Entry(c.Item, c.Selected)));
+                Counts(); Dirty();
+            });
         };
         selectionLabel.Margin = new Thickness(0, 18, 0, 4);
         editing.Children.Add(selectionLabel); editing.Children.Add(adjust);        var footer = new StackPanel { Margin = new Thickness(0, 12, 0, 0) };
@@ -343,7 +352,7 @@ public sealed class ReportShareWindow : Window
     {
         if (document == null) return;
         var dialog = new SaveFileDialog { Filter = "PNG 图片|*.png", DefaultExt = ".png", FileName = $"YuMir-{snapshot.Name}-{snapshot.Start:yyyyMMdd}-{document.PageName(page)}" };
-        if (dialog.ShowDialog(this) != true) return;
+        if (dialog.ShowDialog(ReportSharing.DialogOwner(this)) != true) return;
         try { ReportDocument.Save(document.Render(page), dialog.FileName); status.Text = "已保存：" + dialog.FileName; }
         catch (Exception ex) { status.Text = "保存失败：" + ex.Message; }
     }
@@ -351,7 +360,7 @@ public sealed class ReportShareWindow : Window
     {
         if (document == null) return;
         var dialog = new OpenFolderDialog { Title = "选择保存位置，将自动新建报告文件夹", Multiselect = false };
-        if (dialog.ShowDialog(this) != true) return;
+        if (dialog.ShowDialog(ReportSharing.DialogOwner(this)) != true) return;
         var snapshotDocument = document;
         exporting = new CancellationTokenSource(); editing.IsEnabled = false; cancel.Visibility = Visibility.Visible; Buttons();
         try
@@ -367,7 +376,7 @@ public sealed class ReportShareWindow : Window
     {
         if (document == null) return;
         var dialog = new SaveFileDialog { Filter = "PNG 长图|*.png", DefaultExt = ".png", FileName = $"YuMir-{snapshot.Name}-{snapshot.Start:yyyyMMdd}-长图.png" };
-        if (dialog.ShowDialog(this) != true) return;
+        if (dialog.ShowDialog(ReportSharing.DialogOwner(this)) != true) return;
         var current = document;
         exporting = new CancellationTokenSource(); editing.IsEnabled = false; cancel.Visibility = Visibility.Visible; Buttons();
         status.Text = $"正在排版 {current.Selected.Count} 条资讯…";

@@ -59,6 +59,31 @@ static class Program
             Console.WriteLine("PASS heading: Microsoft YaHei UI, 18, Normal, consistent inline font and baseline");
             window.Close(); Console.WriteLine("PASS fixed footer, repeated selection, scroll separation and sidebar layout"); return;
         }
+        if(args[0]=="embedded-share-test")
+        {
+            typeof(ReportTests).GetMethod("Initialize",System.Reflection.BindingFlags.Static|System.Reflection.BindingFlags.NonPublic)!.Invoke(null,null);
+            var shareItem=new NewsItem {Id="embedded",Title="分享页面导航验证",Summary="分享编辑和挑选完成后返回原页面。",Source=new(){Name="测试"},Links=new(){Original="https://example.com"},DiscoveredAt=DateTimeOffset.Now};
+            var readerType=typeof(NewsItem).Assembly.GetType("AiHot.ReaderWindow")!;
+            var reader=(System.Windows.Window)Activator.CreateInstance(readerType,new object[]{new List<NewsItem>{shareItem},"测试"})!;
+            var flags=System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic;
+            var host=(System.Windows.Controls.Border)readerType.GetField("embeddedHost",flags)!.GetValue(reader)!;
+            void Embed(System.Windows.Window page,string label)=>readerType.GetMethod("ShowEmbeddedPage")!.Invoke(reader,new object?[]{page,label,null});
+            IEnumerable<System.Windows.DependencyObject> Walk(System.Windows.DependencyObject node){yield return node;foreach(var child in System.Windows.LogicalTreeHelper.GetChildren(node).OfType<System.Windows.DependencyObject>())foreach(var found in Walk(child))yield return found;}
+            var shareType=typeof(NewsItem).Assembly.GetType("AiHot.ShareWindow")!;
+            var share=(System.Windows.Window)Activator.CreateInstance(shareType,System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic,null,new object[]{shareItem},null)!;
+            Embed(share,"制作分享卡片");
+            Require(host.Visibility==System.Windows.Visibility.Visible&&!share.IsVisible,"Share embedded without showing its controller window");
+            Require(ReferenceEquals(System.Windows.Window.GetWindow(host.Child),reader),"Share body belongs to reader");
+            typeof(ReportTests).GetMethod("Capture",System.Reflection.BindingFlags.Static|System.Reflection.BindingFlags.NonPublic)!.Invoke(null,new object[]{reader,args[1]});
+            share.Close();Require(host.Visibility==System.Windows.Visibility.Collapsed,"Share returns to reading");
+            var report=new ReportShareWindow(new ReportSnapshot(2,DateTime.Today,DateTime.Today.AddDays(7),DateTimeOffset.Now,new[]{shareItem}));Embed(report,"分享周报");var reportView=host.Child;
+            var adjust=Walk(host.Child).OfType<System.Windows.Controls.Button>().Single(b=>b.Content as string=="调整分享资讯");adjust.RaiseEvent(new System.Windows.RoutedEventArgs(System.Windows.Controls.Button.ClickEvent));
+            Require(!ReferenceEquals(host.Child,reportView),"Picker replaces report within same reader");
+            var done=Walk(host.Child).OfType<System.Windows.Controls.Button>().Single(b=>b.Content as string=="完成挑选");done.RaiseEvent(new System.Windows.RoutedEventArgs(System.Windows.Controls.Button.ClickEvent));
+            Require(ReferenceEquals(host.Child,reportView),"Picker completion restores same report editor");
+            report.Close();Require(host.Visibility==System.Windows.Visibility.Collapsed,"Report returns to original reader");
+            reader.Close();Console.WriteLine("PASS embedded article/report sharing, nested picker completion, same reader host and return");return;
+        }
         if (args[0] == "patch") { Patch(args[1], args[2], args[3]); return; }
         if (args[0] == "verify") { Verify(args[1]); return; }
         if (args[0] == "verify-top-label") { VerifyTopLabel(args[1], args[2]); return; }

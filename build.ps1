@@ -3,6 +3,8 @@ $ErrorActionPreference='Stop'
 Set-Location $PSScriptRoot
 function Run([string[]]$Arguments){& $Dotnet @Arguments;if($LASTEXITCODE -ne 0){throw "dotnet failed: $Arguments"}}
 Run @('publish','core/AiHot.Desktop.csproj','-c','Release','-o','artifacts/app','--self-contained','false')
+# Always restore the compiled source assembly before applying patches, even on incremental publishes.
+Copy-Item core/bin/Release/net10.0-windows/AIHOT.Desktop.dll artifacts/app/AIHOT.Desktop.dll -Force
 # Regenerate the legacy reference assembly from the included source.
 Copy-Item artifacts/app/AIHOT.Desktop.dll lib/AIHOT.Desktop.dll -Force
 Copy-Item artifacts/app/QRCoder.dll lib/QRCoder.dll -Force
@@ -25,3 +27,4 @@ $target['AIHOT.Cards/1.0.0']=@{runtime=@{'AIHOT.Cards.dll'=@{}}}
 $deps.libraries['AIHOT.Cards/1.0.0']=@{type='project';serviceable=$false;sha512=''}
 $deps|ConvertTo-Json -Depth 50|Set-Content artifacts/app/AIHOT.Desktop.deps.json -Encoding utf8
 Write-Output 'Built from source: artifacts/app/AIHOT.Desktop.exe'
+
