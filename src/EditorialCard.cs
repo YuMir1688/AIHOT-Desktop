@@ -79,7 +79,7 @@ public static class EditorialCard
             else if(style==8)
             {
                 dc.DrawRectangle(ink,null,new Rect(left,42,58,58));
-                dc.DrawText(T("AI",28,Brushes.White,54,true,1,"Arial"),new Point(left+12,53));
+                Centered(dc,T("AI",28,Brushes.White,54,true,1,"Arial"),new Rect(left,42,58,58));
                 dc.DrawText(T("新知观察",35,ink,390,true),new Point(126,39));
                 dc.DrawText(T("YuMir 的阅读室",12,muted,390),new Point(128,93));
                 Right(dc,"阅读 / 记录",11,muted,668,58);
@@ -92,7 +92,7 @@ public static class EditorialCard
                 dc.DrawText(T("新知手记",36,ink,400,true),new Point(72,38));
                 dc.DrawText(T("YuMir 的阅读室",12,muted,390),new Point(74,93));
                 dc.DrawEllipse(B(p.Panel),null,new Point(643,72),25,25);
-                dc.DrawText(T("AI",20,accent,45,true,1,"Arial"),new Point(633,59));
+                Centered(dc,T("AI",20,accent,45,true,1,"Arial"),new Rect(618,47,50,50));
             }
             if (style != 2 && style != 8) dc.DrawLine(new Pen(B(p.Line), 1), new Point(left, 132), new Point(668, 132));
     }
@@ -216,6 +216,11 @@ public static class EditorialCard
         FlowDirection.LeftToRight, new Typeface(new FontFamily(family), FontStyles.Normal,
         bold ? FontWeights.Bold : FontWeights.Normal, FontStretches.Normal), size, color, 1.5)
         { MaxTextWidth = width, LineHeight = size * line };
+    private static void Centered(DrawingContext dc,FormattedText text,Rect frame)
+    {
+        var bounds=text.BuildGeometry(new Point()).Bounds;
+        dc.DrawText(text,new Point(frame.X+(frame.Width-bounds.Width)/2-bounds.X,frame.Y+(frame.Height-bounds.Height)/2-bounds.Y));
+    }
     private static void Right(DrawingContext dc, string text, double size, Brush color, double right, double y)
     { var value = T(text, size, color, 350); dc.DrawText(value, new Point(right - value.Width, y)); }
     private static double AlignedCredit(DrawingContext dc, FormattedText masthead, double mastheadY, Brush color)
