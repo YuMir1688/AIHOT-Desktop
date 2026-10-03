@@ -1,11 +1,15 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
 
 namespace AiHot;
 public sealed record TiboPost(string Text, string Url, string Stage);
-public sealed record TiboEvent(string Id, string Title, string Kind, string Status, string Audience, string Estimate, string Confirmed, TiboPost[] Posts);
+public sealed record TiboEvent(string Id, string Title, string Kind, string Status, string Audience, string Estimate, string Confirmed, TiboPost[] Posts)
+{
+    public string RawStatus { get; init; } = "";
+    public string UpdatedAt { get; init; } = "";
+}
 public sealed record TiboData(string CheckedAt, string Health, TiboEvent[] Events)
 {
     public static string Text(JsonElement node, string key) => node.ValueKind == JsonValueKind.Object && node.TryGetProperty(key, out var value) && value.ValueKind == JsonValueKind.String ? value.GetString()! : "";
@@ -28,7 +32,7 @@ public sealed record TiboData(string CheckedAt, string Health, TiboEvent[] Event
             string audience = Text(presentation,"audienceZh"); if (audience.Length == 0) audience = Text(e,"scope");
             string kind = Text(e,"displayLabel"); if (kind.Length == 0) kind = Text(e,"type") == "direct_reset" ? "额度重置" : "重置记录";
             if (Text(e,"id").Length == 0 || Text(e,"title").Length == 0) throw new InvalidOperationException("监控记录不完整");
-            events.Add(new(Text(e,"id"),Text(e,"title"),kind,label,audience,Text(Child(e,"schedule"),"label"),Text(e,"confirmedAt"),parsed));
+            events.Add(new(Text(e,"id"),Text(e,"title"),kind,label,audience,Text(Child(e,"schedule"),"label"),Text(e,"confirmedAt"),parsed) { RawStatus=Text(e,"status"), UpdatedAt=Text(e,"updatedAt") });
         }
         if (events.Select(e=>e.Id).Distinct().Count()!=events.Count) throw new InvalidOperationException("监控记录重复");
         return new(Text(root,"checkedAt"),Text(Child(root,"monitor"),"status"),events.ToArray());
