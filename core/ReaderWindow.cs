@@ -81,6 +81,7 @@ public sealed class ReaderWindow : Window
         {
             int selectedSection = section;
             var sectionButton = new Button { FocusVisualStyle = null, Content = new[] { "资讯", "日报", "周报", "月报" }[section], FontSize = 12, Height = 32, Padding = new Thickness(14, 6, 14, 6), Margin = new Thickness(4, 0, 0, 0), Background = section == 0 ? Ui.Brush("#23493F") : Ui.Brush("#1A2633") };
+            Ui.NavigationButton(sectionButton);
             sectionButton.Click += (_, _) => {
                 smoothList.Cancel(); smoothArticle.Cancel();
                 calendarHost.Visibility=Visibility.Collapsed;
@@ -94,6 +95,7 @@ public sealed class ReaderWindow : Window
         }
         returnHome = () => sectionButtons[0].RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
         var monitor = new Button { FocusVisualStyle = null, Content = "重置日历", FontSize = 12, Height = 32, Padding = new Thickness(12,6,12,6), Margin = new Thickness(4,0,0,0) };
+        Ui.NavigationButton(monitor);
         showCalendar=()=>{
             returnHome?.Invoke();
             calendar ??= new TiboPanel(); calendarHost.Child=calendar;
