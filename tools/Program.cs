@@ -53,7 +53,7 @@ static class Program
             Require(!detail.Children.OfType<System.Windows.Controls.TextBlock>().Any(t => t.Text.Contains("资讯整理")), "Attribution removed from scrolling content");
             typeof(ReportTests).GetMethod("Capture", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic)!.Invoke(null, new object[] { window, args[1] });
             IEnumerable<System.Windows.DependencyObject> HeadingTree(System.Windows.DependencyObject node) { yield return node; foreach(var child in System.Windows.LogicalTreeHelper.GetChildren(node).OfType<System.Windows.DependencyObject>()) foreach(var found in HeadingTree(child)) yield return found; }
-            var heading=HeadingTree(window).OfType<System.Windows.Controls.TextBlock>().Single(t=>t.Text=="你的 AI 信息视野");
+            var heading=HeadingTree(window).OfType<System.Windows.Controls.TextBlock>().Single(t=>t.Text=="你的AI信息阅读室");
             Require(heading.FontFamily.Source=="Microsoft YaHei UI" && heading.FontSize==18 && heading.FontWeight==System.Windows.FontWeights.Normal,"One font, size and weight for reader heading");
             Require(heading.Inlines.OfType<System.Windows.Documents.Run>().All(run=>run.FontSize==heading.FontSize && run.FontWeight==heading.FontWeight && run.FontFamily.Source==heading.FontFamily.Source && run.BaselineAlignment==System.Windows.BaselineAlignment.Baseline),"No separate glyph size or baseline overrides");
             Console.WriteLine("PASS heading: Microsoft YaHei UI, 18, Normal, consistent inline font and baseline");

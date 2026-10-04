@@ -1,4 +1,4 @@
-﻿using System.Reflection;
+using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
@@ -41,7 +41,7 @@ public static class ReaderSidebar
             if (columns.Parent is Grid readerBody)
             foreach (var row in readerBody.Children.OfType<Grid>())
             foreach (var heading in row.Children.OfType<StackPanel>())
-            foreach (var title in heading.Children.OfType<TextBlock>().Where(t => t.Text == "你的 AI 信息视野"))
+            foreach (var title in heading.Children.OfType<TextBlock>().Where(t => t.Text == "你的AI信息阅读室"))
             {
                 title.FontFamily = new FontFamily("Microsoft YaHei UI");
                 title.FontSize = 18;
@@ -50,7 +50,7 @@ public static class ReaderSidebar
                 title.TextWrapping = TextWrapping.NoWrap;
                 title.VerticalAlignment = VerticalAlignment.Center;
                 title.Inlines.Clear();
-                title.Text = "你的 AI 信息视野";
+                title.Text = "你的AI信息阅读室";
                 TextOptions.SetTextFormattingMode(title, TextFormattingMode.Display);
                 TextOptions.SetTextRenderingMode(title, TextRenderingMode.ClearType);
             }
