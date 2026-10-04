@@ -41,7 +41,7 @@
 
 ### 直接下载使用
 
-查看 [Releases](https://github.com/YuMir1688/AIHOT-Desktop/releases) 的版本说明后下载程序包，解压到独立目录并运行 `AIHOT.Desktop.exe`。
+查看 [Releases](https://github.com/YuMir1688/AIHOT-Desktop/releases) 的版本说明后下载原始程序文件，放在同一个独立目录并运行 `AIHOT.Desktop.exe`。新安装需 Windows x64 与 .NET 10 Desktop Runtime；本次不提供压缩包。
 
 发布包与源码可能存在版本差异，具体功能请查看对应版本说明；体验源码版本可按下方步骤构建。
 
@@ -82,12 +82,12 @@ MIT 仅覆盖项目自有代码；第三方组件、新闻、摘要、图片及�
 
 ## 开机自动启动
 在实际使用的程序目录中双击 启用开机启动.cmd，下次登录当前 Windows 账户后自动启动；双击 关闭开机启动.cmd 可取消。两个入口和 Set-Autostart.ps1 须与 AIHOT.Desktop.exe 放在同一目录。无需管理员权限；重复启用不会新增重复项。若已有指向其他目录的 AIHOT 启动项，脚本会提示并保留原项。
-本机启动项不会随 GitHub 自动迁移，其他电脑需启用一次。本次未更新 Release 文件。
+本机启动项不会随 GitHub 自动迁移，其他电脑需启用一次。最新 Release 为 `v2026.10.04`，更新方式见版本说明。
 
 ## Tibo 重置监控
 
-在挂件右键菜单或托盘菜单选择“Tibo 重置监控”。原生面板显示近期额度重置、重置卡记录、适用范围、预告时间、确认帖时间及原帖链接；完整历史入口打开 AIHOT 来源页面。
+在阅读室选择“重置日历”，或通过挂件 / 托盘菜单进入。日历和资讯、周期报告、分享编辑在同一个阅读窗口中切换。绿色底色标记北京时间今天；其他日期的细边框表示当前查看日期，右侧显示记录和原帖。
 
-使用 AIHOT 文档中的 `/api/v1/codex-resets/recent` JSON 接口，无需账号或 API Key。窗口打开期间每 10 分钟检查一次，支持压缩传输、ETag / 304 和 Retry-After；关闭窗口即停止检查。异常时保留并标明上次结果，不将预计时间推断成已确认到账。数据单独缓存于本机 `tibo-api-cache.json`，不上传账户或资讯存档。此入口不新增 Telegram 推送。
+数据来自 AIHOT 的 `/api/v1/codex-resets` JSON 接口，无需账号或 API Key。日历显示期间每 10 分钟检查一次，支持压缩传输、ETag / 304 和 Retry-After；隐藏时停止定时检查。异常时保留上次结果并提示，不将预计时间推断成已确认到账。缓存位于本机 `tibo-calendar-cache.json`，此入口不新增 Telegram 推送。
 
-已通过源码构建、离线解析和界面检查，并用正式接口返回内容检查展示。此次未更新 Release 文件。
+最新发布版本为 `v2026.10.04`，包含阅读室、日历和十种分享版式的 UI 与交互优化。验证和下载说明见对应 Release。
